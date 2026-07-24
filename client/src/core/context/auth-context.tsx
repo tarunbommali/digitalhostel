@@ -82,6 +82,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         "/auth/login",
         { email, password },
       );
+      if (!data || !data.user) {
+        return { error: "Invalid response from server" };
+      }
       const mType = data.user.moderatorType || "full";
       localStorage.setItem("token", data.token);
       setUser({ ...data.user, moderatorType: mType });

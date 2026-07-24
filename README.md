@@ -46,7 +46,8 @@ A state-of-the-art, multi-tenant Hostel Management Web Application designed for 
 ## 📁 Repository Structure
 
 ```text
-Hostel/
+DigitalHostel/
+├── package.json                 # Root script runner (concurrently run server & client)
 ├── client/                      # Frontend Application (React + Vite + TypeScript)
 │   ├── src/
 │   │   ├── core/                # Core Design System, Hooks & Lookups
@@ -85,10 +86,11 @@ Hostel/
 - **Node.js** v18+ installed
 - **MongoDB** instance running locally or on MongoDB Atlas
 
-### 1. Backend Setup
+### ⚡ Quick Start (Run Both Client & Server Concurrently)
+
+Install all dependencies (root, client, and server) with a single command:
 ```bash
-cd server
-npm install
+npm run install:all
 ```
 
 Create a `.env` file inside `server/`:
@@ -98,24 +100,19 @@ MONGODB_URI=mongodb://127.0.0.1:27017/hostel_db
 JWT_SECRET=your_secure_jwt_secret_key
 ```
 
-Start the backend dev server:
+Start **both backend and frontend** together concurrently from the root:
 ```bash
 npm run dev
 ```
 
-### 2. Frontend Setup
-Open a new terminal window:
-```bash
-cd client
-npm install
-```
+---
 
-Start the Vite client dev server:
-```bash
-npm run dev
-```
+### 🛠️ Individual Execution Options
 
-The application will be accessible at `http://localhost:5173`.
+- **Run Backend Only**: `npm run server`
+- **Run Frontend Only**: `npm run client`
+
+The frontend application will be accessible at `http://localhost:5173` and backend services at `http://localhost:5000`.
 
 ---
 
