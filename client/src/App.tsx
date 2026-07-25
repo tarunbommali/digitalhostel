@@ -27,6 +27,7 @@ import {
   X,
   Building2,
   UserCog,
+  Clock,
 } from "lucide-react";
 
 // Feature Modules Pages
@@ -45,6 +46,7 @@ import BillsPage from "@/modules/bills/pages/Bills";
 import PaymentsPage from "@/modules/payments/pages/Payments";
 import FlagsPage from "@/modules/flags/pages/Flags";
 import SettingsPage from "@/modules/settings/pages/Settings";
+import OutingsLogPage from "@/modules/outings/pages/OutingsLog";
 
 
 type NavItem = {
@@ -59,7 +61,13 @@ const NAV: NavItem[] = [
     to: "/dashboard",
     label: "Dashboard",
     icon: LayoutDashboard,
-    roles: ["admin", "moderator", "student"],
+    roles: ["admin", "moderator", "student", "security_guard"],
+  },
+  {
+    to: "/outings",
+    label: "Outing Logbook",
+    icon: Clock,
+    roles: ["admin", "moderator", "student", "security_guard"],
   },
   {
     to: "/students",
@@ -67,7 +75,7 @@ const NAV: NavItem[] = [
     icon: Users,
     roles: ["admin", "moderator"],
   },
-  { to: "/moderators", label: "Moderators", icon: UserCog, roles: ["admin"] },
+  { to: "/moderators", label: "Moderators & Security", icon: UserCog, roles: ["admin"] },
   { to: "/rooms", label: "Rooms & Beds", icon: BedDouble, roles: ["admin"] },
   {
     to: "/attendance",
@@ -124,6 +132,11 @@ function RequireAuth({
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
+  // Security guard restriction
+  if (role === "security_guard" && !["/dashboard", "/outings"].includes(location.pathname)) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   // Mess Attendance is restricted from Admin and Administration Moderator
   if (location.pathname === "/attendance") {
     if (role === "admin" || (role === "moderator" && moderatorType === "administration")) {
@@ -163,6 +176,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   const isAttendanceOnly = role === "moderator" && moderatorType === "attendance_only";
   const isDisciplineMonitor = role === "moderator" && moderatorType === "discipline_monitor";
   const isAdministrationMod = role === "moderator" && (moderatorType === "administration" || moderatorType === "full");
+  const isSecurityGuard = role === "security_guard" || moderatorType === "security_guard";
   const isAdmin = role === "admin";
 
   const items = NAV.filter((n) => {
@@ -171,6 +185,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
     if ((isAdmin || isAdministrationMod) && n.to === "/attendance") return false;
     if (isAttendanceOnly && n.to !== "/attendance") return false;
     if (isDisciplineMonitor && !["/dashboard", "/flags"].includes(n.to)) return false;
+    if (isSecurityGuard && n.to !== "/dashboard") return false;
     return true;
   });
 
@@ -222,6 +237,8 @@ function AppLayout({ children }: { children: React.ReactNode }) {
             <p className="opacity-70 font-medium">
               {role === "admin"
                 ? "OIH"
+                : isSecurityGuard
+                ? "Hostel Security Guard"
                 : isAttendanceOnly
                 ? "Mess Attendance Staff"
                 : isDisciplineMonitor
@@ -258,6 +275,8 @@ function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="text-sm font-semibold">
             {role === "admin"
               ? "Officer Incharge of Hostel"
+              : isSecurityGuard
+              ? "Hostel Gate Pass & Digital Scanner"
               : isAttendanceOnly
               ? "Mess Attendance Staff"
               : isDisciplineMonitor
@@ -350,6 +369,16 @@ export function App() {
               <RequireAuth roles={["admin", "moderator"]}>
                 <AppLayout>
                   <AttendancePage />
+                </AppLayout>
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/outings"
+            element={
+              <RequireAuth roles={["admin", "moderator", "student", "security_guard"]}>
+                <AppLayout>
+                  <OutingsLogPage />
                 </AppLayout>
               </RequireAuth>
             }

@@ -126,6 +126,9 @@ export function AddStaffForm({
               <SelectItem value="attendance_only">
                 Mess Attendance Staff (Mess Attendance Marking Only)
               </SelectItem>
+              <SelectItem value="security_guard">
+                🛡️ Security Guard (Scan Digital ID & Manage Outing Logbook Only)
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>

@@ -71,6 +71,51 @@ router.delete(
   },
 );
 
+// Blocks - PUT (Edit Block Name, Code & Gender)
+router.put(
+  "/blocks/:id",
+  authMiddleware,
+  requireRole(["admin"]),
+  async (req, res) => {
+    try {
+      const { name, code, gender } = req.body;
+      const block = await Block.findById(req.params.id);
+      if (!block) {
+        return res.status(404).json({ error: "Hostel Block not found" });
+      }
+
+      const oldName = block.name;
+      if (name && name.trim()) {
+        const existing = await Block.findOne({
+          _id: { $ne: block._id },
+          name: new RegExp(`^${name.trim()}$`, "i"),
+        });
+        if (existing) {
+          return res.status(400).json({ error: "Hostel Block with this name already exists" });
+        }
+        block.name = name.trim();
+      }
+
+      if (code !== undefined) block.code = code.trim().toUpperCase();
+      if (gender && ["boys", "girls", "co-ed"].includes(gender.toLowerCase())) {
+        block.gender = gender.toLowerCase();
+      }
+
+      await block.save();
+
+      // Cascade update room hostelBlock name if block name changed
+      if (oldName !== block.name) {
+        const Room = require("../models/Room");
+        await Room.updateMany({ hostelBlock: oldName }, { hostelBlock: block.name });
+      }
+
+      res.json({ ok: true, block });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  },
+);
+
 // Departments - GET
 router.get("/departments", authMiddleware, async (req, res) => {
   try {

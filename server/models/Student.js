@@ -27,6 +27,19 @@ const StudentSchema = new mongoose.Schema(
       enum: ["active", "suspended", "graduated"],
       default: "active",
     },
+    bloodGroup: { type: String, default: "B+" },
+    emergencyContact: { type: String },
+    guardianPhone: { type: String },
+    photoUrl: { type: String },
+    cardIssuedDate: { type: Date, default: Date.now },
+    cardValidUntil: {
+      type: Date,
+      default: function () {
+        const d = new Date();
+        d.setFullYear(d.getFullYear() + 1);
+        return d;
+      },
+    },
     dateJoined: { type: Date, default: Date.now },
     createdAt: { type: Date, default: Date.now },
   },

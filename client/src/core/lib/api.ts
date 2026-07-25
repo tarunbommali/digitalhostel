@@ -1,4 +1,9 @@
-const API_BASE = "/api";
+const API_BASE = window.location.port === '5173'
+  ? 'http://15.207.249.56:5000/api'
+  : '/api';
+
+
+
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = localStorage.getItem("token");

@@ -147,6 +147,21 @@ export function StudentsPage() {
     }
   };
 
+  const handleRenewPass = async (id: string, name: string) => {
+    try {
+      const res: any = await api.put(`/students/${id}/renew-pass`, {});
+      const dateStr = new Date(res.validUntil).toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      });
+      toast.success(`Digital ID card for ${name} renewed until ${dateStr}`);
+      fetchStudents();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to renew ID pass");
+    }
+  };
+
   const toggleStatus = async (id: string, currentActive: boolean) => {
     try {
       await api.put(`/students/${id}/status`, { active: !currentActive });
@@ -166,7 +181,7 @@ export function StudentsPage() {
             Manage student registrations, departments, dues, and statuses ({total} total)
           </p>
         </div>
-        {role === "admin" && (
+        {(role === "admin" || role === "moderator") && (
           <div className="flex gap-2">
             <Button asChild variant="outline">
               <Link to="/students/import"><Plus className="mr-2 h-4 w-4" /> Import CSV</Link>
@@ -202,6 +217,7 @@ export function StudentsPage() {
         editPhoneDigits={editPhoneDigits} setEditPhoneDigits={setEditPhoneDigits}
         departments={departments} academicYears={academicYears}
         busyEdit={busyEdit} handleUpdateStudent={handleUpdateStudent}
+        onRenewPass={() => editingStudentId && handleRenewPass(editingStudentId, editForm.fullName)}
       />
     </div>
   );

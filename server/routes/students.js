@@ -351,6 +351,45 @@ router.post(
   },
 );
 
+// PUT /:id/renew-pass - Admin/Moderator renewal of student Digital ID Card for 1 year
+router.put(
+  "/:id/renew-pass",
+  authMiddleware,
+  requireRole(["admin", "moderator"]),
+  async (req, res) => {
+    try {
+      const student = await Student.findById(req.params.id);
+      if (!student) return res.status(404).json({ error: "Student not found" });
+
+      const now = new Date();
+      const validUntil = new Date(now);
+      validUntil.setFullYear(validUntil.getFullYear() + 1);
+
+      student.cardIssuedDate = now;
+      student.cardValidUntil = validUntil;
+      student.status = "active";
+      await student.save();
+
+      if (student.user) {
+        await User.findByIdAndUpdate(student.user, { isActive: true });
+      }
+
+      const log = new AuditLog({
+        user: req.user._id,
+        action: "student.renew_pass",
+        entityType: "student",
+        entityId: student._id.toString(),
+        details: { hostelUid: student.hostelUid, validUntil },
+      });
+      await log.save();
+
+      res.json({ ok: true, message: "Student Digital ID card renewed for 1 year", validUntil });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  },
+);
+
 // PUT update status (Disable/Enable Student Profile)
 router.put(
   "/:id/status",

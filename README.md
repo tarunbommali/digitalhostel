@@ -7,16 +7,19 @@ A state-of-the-art, multi-tenant Hostel Management Web Application designed for 
 ## 🌟 Key Features
 
 ### 🔐 1. Multi-Role RBAC (Role-Based Access Control)
-- **OIH (Officer Incharge of Hostel / Main Admin)**: Full system administration, Moderator creation, Hostel Block & Room setup, Bill Batch Modification, and Bill Verification & Release.
+- **OIH (Officer Incharge of Hostel / Main Admin)**: Full system administration, Security Guard and Moderator creation, Hostel Block & Room setup, Bill Batch Modification, and Bill Verification & Release.
 - **Administration Moderator**: Student registration, student profile management, bulk CSV student import, and monthly mess bill drafting/posting.
 - **Discipline Warden**: Student disciplinary flagging, report management, and leave approval.
+- **🛡️ Security Guard**: Digital ID QR Pass Scanning, leave pass verification, gate entry/exit movement recording, and access to the gate outing logbook.
 - **Mess Attendance Staff**: Exclusively restricted to Mess Attendance Marking via live camera QR scanner and USB barcode guns.
-- **Student**: Access to personal Digital Pass (with registration number), monthly fee dues, SBI Collect payment records, and leave applications.
+- **Student**: Access to personal Digital Pass, Outing Pass status & gate movement history, monthly fee dues, SBI Collect payment records, and leave applications.
 
 ---
 
-### 🪪 2. Digital Pass & Attendance Scanner Engine
+### 🪪 2. Digital Pass, Security Guard Scanner & Outing Logbook Engine
 - **Digital QR Pass**: Generates unique Digital ID Passes containing student registration numbers and encrypted payloads.
+- **Security Guard Scanner Portal**: Dedicated gate pass scanner allowing Security Guards to scan student Digital ID QR codes (or enter registration/hostel numbers), verify active leave passes, and log student **OUT (Gate Exit)** or **IN (Gate Entry)** movements into the logbook.
+- **Outing Logbook**: Filterable gate movement history featuring default **Today-only** display, time period range filters, student gender filters (Boys/Girls Hostel), department filters, and instant text search.
 - **Instant Web Audio Feedback**: Zero-latency Web Audio API synthesizers producing pleasant chimes for success and warning buzzes for duplicate/inactive scans.
 - **Laptop & Multi-Camera Cascade**: 4-tier camera fallback cascade with live camera device selector dropdown.
 - **USB 2D Barcode Gun Listener**: Global keyboard listener automatically detecting physical USB QR scanner guns for rapid attendance marking.
@@ -38,7 +41,7 @@ A state-of-the-art, multi-tenant Hostel Management Web Application designed for 
 ---
 
 ### 🧱 5. Single Responsibility Principle (SRP) Modular Architecture
-- Every page component strictly adheres to `< 200 lines` of clean TypeScript/JSX.
+- Every page component strictly adheres to clean TypeScript/JSX.
 - Modular folder structure separating UI components, custom hooks, services, utilities, and TypeScript types under `client/src/modules/` and `client/src/core/`.
 
 ---
@@ -53,16 +56,18 @@ DigitalHostel/
 │   │   ├── core/                # Core Design System, Hooks & Lookups
 │   │   │   ├── components/      # PhoneInput, LookupManager, UI primitives
 │   │   │   ├── hooks/           # useHostelLookups, etc.
-│   │   │   ├── lookup/          # Master Lookups Module (SRP < 35 lines)
+│   │   │   ├── lookup/          # Master Lookups Module
 │   │   │   └── utils/           # Formatters & Helpers
 │   │   └── modules/             # Feature Modules
 │   │       ├── attendance/      # Attendance Scanner, Service, Hooks & Components
 │   │       ├── auth/            # Auth, Login & Password Reset
 │   │       ├── bills/           # Monthly Bills & Admin Verification
-│   │       ├── dashboard/       # OIH, Staff & Student Dashboards
+│   │       ├── dashboard/       # OIH, Staff, Guard & Student Dashboards
 │   │       ├── flags/           # Student Flagging & Disciplinary Reports
+│   │       ├── guard/           # Security Guard Scanner & Gate Entry Pass
 │   │       ├── leaves/          # Student Leave Applications
-│   │       ├── moderators/      # Staff & Warden Account Management
+│   │       ├── moderators/      # Staff, Warden & Guard Account Management
+│   │       ├── outings/         # Outing Logbook & Period/Gender/Dept Filtering
 │   │       ├── payments/        # SBI Collect Payments
 │   │       ├── rooms/           # Rooms, Blocks & Bed Allocations
 │   │       ├── settings/        # System Settings & Master Lookups
@@ -71,8 +76,8 @@ DigitalHostel/
 │
 └── server/                      # Backend REST API (Node.js + Express + Mongoose)
     ├── middleware/              # Auth & RBAC Middleware
-    ├── models/                  # Mongoose Schemas (User, Student, MonthlyBill, Payment, etc.)
-    ├── routes/                  # API Controllers (auth, students, bills, attendance, etc.)
+    ├── models/                  # Mongoose Schemas (User, Student, OutingLog, MonthlyBill, etc.)
+    ├── routes/                  # API Controllers (auth, students, outings, bills, attendance, etc.)
     ├── services/                # Business Logic Services
     ├── server.js                # Express App Entrypoint
     └── package.json
@@ -120,9 +125,10 @@ The frontend application will be accessible at `http://localhost:5173` and backe
 
 | Role / Account | Default Email | Default Password | Access Scope |
 | :--- | :--- | :--- | :--- |
-| **OIH (Main Admin)** | `admin@hostel.edu` | `Admin#123` | Full System Control, Bill Verification & Release |
+| **OIH (Main Admin)** | `admin@hostel.edu` | `Admin#123` | Full System Control, Staff/Guard Creation, Bill Verification & Release |
 | **Administration** | `staff@hostel.edu` | `Password#123` | Student Directory, Registration, CSV Import, Bill Drafting |
 | **Discipline Warden** | `warden@hostel.edu` | `Password#123` | Student Flagging & Discipline Reports |
+| **Security Guard** | `guard@hostel.edu` | `Password#123` | Digital ID QR Scanning, Leave Verification, Gate Outing Logbook (`/dashboard`, `/outings`) |
 | **Mess Attendance Staff** | `mess@hostel.edu` | `Password#123` | Mess Attendance Marking Only (`/attendance`) |
 
 ---

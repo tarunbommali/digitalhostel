@@ -5,12 +5,17 @@ import { Input } from "@/core/components/ui/input";
 import { Label } from "@/core/components/ui/label";
 import { Button } from "@/core/components/ui/button";
 import { toast } from "sonner";
-import { KeyRound, Loader2 } from "lucide-react";
+import { KeyRound, Loader2, Eye, EyeOff } from "lucide-react";
 
 export function ChangePasswordCard() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
   const [changingPass, setChangingPass] = useState(false);
 
   const handleChangePassword = async (e: React.FormEvent) => {
@@ -49,44 +54,84 @@ export function ChangePasswordCard() {
       </div>
 
       <form onSubmit={handleChangePassword} className="space-y-4">
+        {/* Current Password */}
         <div className="space-y-1.5">
-          <Label>Current Password</Label>
-          <Input
-            required
-            type="password"
-            placeholder="Enter current password"
-            value={currentPassword}
-            onChange={(e) => setCurrentPassword(e.target.value)}
-          />
-        </div>
-        <div className="grid md:grid-cols-2 gap-4">
-          <div className="space-y-1.5">
-            <Label>New Password</Label>
+          <Label htmlFor="current-password">Current Password</Label>
+          <div className="relative">
             <Input
+              id="current-password"
               required
-              minLength={8}
-              type="password"
-              placeholder="Minimum 8 characters"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
+              type={showCurrent ? "text" : "password"}
+              placeholder="Enter current password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              className="pr-10"
             />
-          </div>
-          <div className="space-y-1.5">
-            <Label>Confirm New Password</Label>
-            <Input
-              required
-              minLength={8}
-              type="password"
-              placeholder="Re-enter new password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
+            <button
+              type="button"
+              onClick={() => setShowCurrent(!showCurrent)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
+              aria-label={showCurrent ? "Hide current password" : "Show current password"}
+            >
+              {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
           </div>
         </div>
 
-        <Button type="submit" className="w-full mt-2" disabled={changingPass}>
-          {changingPass && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}{" "}
-          Update Password
+        <div className="grid md:grid-cols-2 gap-4">
+          {/* New Password */}
+          <div className="space-y-1.5">
+            <Label htmlFor="new-password">New Password</Label>
+            <div className="relative">
+              <Input
+                id="new-password"
+                required
+                minLength={8}
+                type={showNew ? "text" : "password"}
+                placeholder="Minimum 8 characters"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowNew(!showNew)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
+                aria-label={showNew ? "Hide new password" : "Show new password"}
+              >
+                {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
+
+          {/* Confirm New Password */}
+          <div className="space-y-1.5">
+            <Label htmlFor="confirm-password">Confirm New Password</Label>
+            <div className="relative">
+              <Input
+                id="confirm-password"
+                required
+                minLength={8}
+                type={showConfirm ? "text" : "password"}
+                placeholder="Re-enter new password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirm(!showConfirm)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
+                aria-label={showConfirm ? "Hide confirm password" : "Show confirm password"}
+              >
+                {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <Button type="submit" className="w-full mt-2 font-medium" disabled={changingPass}>
+          {changingPass && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Update Password
         </Button>
       </form>
     </Card>

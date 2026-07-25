@@ -7,11 +7,12 @@ import {
 } from "react";
 import { api } from "@/core/lib/api";
 
-export type AppRole = "admin" | "moderator" | "student";
+export type AppRole = "admin" | "moderator" | "student" | "security_guard";
 export type ModeratorType =
   | "administration"
   | "discipline_monitor"
   | "attendance_only"
+  | "security_guard"
   | "full";
 
 export interface User {

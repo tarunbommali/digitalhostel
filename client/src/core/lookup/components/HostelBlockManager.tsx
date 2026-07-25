@@ -10,8 +10,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/core/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/core/components/ui/dialog";
+import { Label } from "@/core/components/ui/label";
 import { toast } from "sonner";
-import { Building2, Plus, Trash2, Loader2 } from "lucide-react";
+import { Building2, Plus, Trash2, Edit, Loader2 } from "lucide-react";
 import { HostelBlockItem, HostelGender } from "../types";
 import { HOSTEL_GENDERS } from "../constants";
 import { lookupService } from "../services/lookup.service";
@@ -31,6 +39,14 @@ export function HostelBlockManager({
   const [gender, setGender] = useState<HostelGender>("boys");
   const [busy, setBusy] = useState(false);
 
+  // Edit Modal State
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingBlock, setEditingBlock] = useState<HostelBlockItem | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editCode, setEditCode] = useState("");
+  const [editGender, setEditGender] = useState<HostelGender>("boys");
+  const [busyEdit, setBusyEdit] = useState(false);
+
   // Delete modal state
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedBlock, setSelectedBlock] = useState<HostelBlockItem | null>(null);
@@ -49,6 +65,35 @@ export function HostelBlockManager({
       toast.error(err.message || "Failed to add hostel block");
     } finally {
       setBusy(false);
+    }
+  };
+
+  const openEditModal = (b: HostelBlockItem) => {
+    setEditingBlock(b);
+    setEditName(b.name);
+    setEditCode(b.code || "");
+    setEditGender(b.gender || "boys");
+    setEditModalOpen(true);
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingBlock || !editName.trim()) return;
+    setBusyEdit(true);
+    try {
+      await lookupService.updateBlock(
+        editingBlock._id,
+        editName.trim(),
+        editCode.trim(),
+        editGender
+      );
+      toast.success(`Hostel Block updated successfully`);
+      setEditModalOpen(false);
+      onUpdate();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update hostel block");
+    } finally {
+      setBusyEdit(false);
     }
   };
 
@@ -121,20 +166,88 @@ export function HostelBlockManager({
                 {b.gender} Hostel
               </Badge>
             </div>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-8 w-8 text-destructive hover:bg-destructive/10"
-              onClick={() => {
-                setSelectedBlock(b);
-                setDeleteModalOpen(true);
-              }}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center gap-1">
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8 text-muted-foreground hover:text-primary"
+                onClick={() => openEditModal(b)}
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                onClick={() => {
+                  setSelectedBlock(b);
+                  setDeleteModalOpen(true);
+                }}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         ))}
       </div>
+
+      {/* Edit Block Name & Details Modal */}
+      <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Hostel Block Name & Details</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleEditSubmit} className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label>Hostel Block Name *</Label>
+              <Input
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                required
+                placeholder="e.g. Boys Hostel - Block A"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Block Code</Label>
+              <Input
+                value={editCode}
+                onChange={(e) => setEditCode(e.target.value)}
+                placeholder="e.g. BH-1"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Hostel Type / Gender *</Label>
+              <Select
+                value={editGender}
+                onValueChange={(v) => setEditGender(v as HostelGender)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {HOSTEL_GENDERS.map((g) => (
+                    <SelectItem key={g.value} value={g.value}>
+                      {g.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <DialogFooter className="pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setEditModalOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={busyEdit || !editName.trim()}>
+                {busyEdit && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Save Changes
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {selectedBlock && (
         <DeleteConfirmModal

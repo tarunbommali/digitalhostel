@@ -50,43 +50,51 @@ async function processCompletedAcademicYears() {
       }
     }
 
-    if (completedYearIds.length === 0) return { updatedStudents: 0, releasedBeds: 0 };
-
-    // Find all active students in completed academic years
-    const activeStudentsToComplete = await Student.find({
-      academicYear: { $in: completedYearIds },
-      status: { $ne: "graduated" },
-    });
-
-    let updatedStudents = 0;
-    let releasedBeds = 0;
-
-    for (const student of activeStudentsToComplete) {
-      // Set student status to graduated
-      student.status = "graduated";
-      await student.save();
-      updatedStudents++;
-
-      // Deactivate user account
-      if (student.user) {
-        await User.findByIdAndUpdate(student.user, { isActive: false });
-      }
-
-      // Release any active bed allocation
-      const activeAllocations = await BedAllocation.find({
-        student: student._id,
-        isCurrent: true,
+    if (completedYearIds.length > 0) {
+      // Find all active students in completed academic years
+      const activeStudentsToComplete = await Student.find({
+        academicYear: { $in: completedYearIds },
+        status: { $ne: "graduated" },
       });
 
-      for (const alloc of activeAllocations) {
-        alloc.isCurrent = false;
-        alloc.allocatedTo = new Date();
-        await alloc.save();
-        releasedBeds++;
+      for (const student of activeStudentsToComplete) {
+        student.status = "graduated";
+        await student.save();
+        updatedStudents++;
+
+        if (student.user) {
+          await User.findByIdAndUpdate(student.user, { isActive: false });
+        }
+
+        const activeAllocations = await BedAllocation.find({
+          student: student._id,
+          isCurrent: true,
+        });
+
+        for (const alloc of activeAllocations) {
+          alloc.isCurrent = false;
+          alloc.allocatedTo = new Date();
+          await alloc.save();
+          releasedBeds++;
+        }
       }
     }
 
-    return { updatedStudents, releasedBeds };
+    // Process annual card expiry (if cardValidUntil < now, automatically disable active card)
+    const expiredCardStudents = await Student.find({
+      cardValidUntil: { $lt: new Date() },
+      status: "active",
+    });
+
+    for (const student of expiredCardStudents) {
+      student.status = "suspended";
+      await student.save();
+      if (student.user) {
+        await User.findByIdAndUpdate(student.user, { isActive: false });
+      }
+    }
+
+    return { updatedStudents, releasedBeds, expiredCards: expiredCardStudents.length };
   } catch (err) {
     console.error("Error in processCompletedAcademicYears:", err);
     return { error: err.message };

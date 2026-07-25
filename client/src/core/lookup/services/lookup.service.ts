@@ -45,4 +45,16 @@ export const lookupService = {
   deleteBlock(id: string): Promise<{ ok: boolean }> {
     return api.delete<{ ok: boolean }>(`/lookups/blocks/${id}`);
   },
+
+  updateBlock(
+    id: string,
+    name: string,
+    code?: string,
+    gender?: HostelGender
+  ): Promise<{ ok: boolean; block: HostelBlockItem }> {
+    return api.put<{ ok: boolean; block: HostelBlockItem }>(
+      `/lookups/blocks/${id}`,
+      { name, code, gender }
+    );
+  },
 };

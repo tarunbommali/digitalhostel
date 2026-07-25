@@ -13,7 +13,7 @@ const UserSchema = new mongoose.Schema(
     password: { type: String, required: true },
     role: {
       type: String,
-      enum: ["admin", "moderator", "student"],
+      enum: ["admin", "moderator", "student", "security_guard"],
       required: true,
     },
     firstName: { type: String, trim: true },
@@ -24,7 +24,13 @@ const UserSchema = new mongoose.Schema(
     assignedGenderHostel: { type: String, enum: ["boys", "girls", "co-ed", "all"], default: "all" },
     moderatorType: {
       type: String,
-      enum: ["administration", "discipline_monitor", "attendance_only", "full"],
+      enum: [
+        "administration",
+        "discipline_monitor",
+        "attendance_only",
+        "security_guard",
+        "full",
+      ],
       default: "administration",
     },
     isActive: { type: Boolean, default: true },

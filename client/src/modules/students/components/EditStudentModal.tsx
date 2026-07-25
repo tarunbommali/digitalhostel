@@ -16,7 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/core/components/ui/dialog";
-import { Pencil, Loader2 } from "lucide-react";
+import { Pencil, Loader2, RefreshCw } from "lucide-react";
 
 interface EditStudentModalProps {
   editModalOpen: boolean;
@@ -31,6 +31,7 @@ interface EditStudentModalProps {
   academicYears: any[];
   busyEdit: boolean;
   handleUpdateStudent: (e: React.FormEvent) => void;
+  onRenewPass?: () => void;
 }
 
 export function EditStudentModal({
@@ -46,6 +47,7 @@ export function EditStudentModal({
   academicYears,
   busyEdit,
   handleUpdateStudent,
+  onRenewPass,
 }: EditStudentModalProps) {
   return (
     <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
@@ -185,18 +187,30 @@ export function EditStudentModal({
               </SelectContent>
             </Select>
           </div>
-          <div className="md:col-span-2 pt-3 flex justify-end gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setEditModalOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={busyEdit}>
-              {busyEdit && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}{" "}
-              Save Changes
-            </Button>
+          <div className="md:col-span-2 pt-3 flex items-center justify-between">
+            {onRenewPass && (
+              <Button
+                type="button"
+                variant="outline"
+                className="gap-1.5 border-emerald-500/40 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
+                onClick={onRenewPass}
+              >
+                <RefreshCw className="h-4 w-4" /> Renew ID Card (1 Year)
+              </Button>
+            )}
+            <div className="flex gap-2 ml-auto">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setEditModalOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={busyEdit}>
+                {busyEdit && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}{" "}
+                Save Changes
+              </Button>
+            </div>
           </div>
         </form>
       </DialogContent>

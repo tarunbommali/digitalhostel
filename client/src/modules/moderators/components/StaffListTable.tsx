@@ -1,3 +1,4 @@
+import React from "react";
 import { Card } from "@/core/components/ui/card";
 import { Button } from "@/core/components/ui/button";
 import { Badge } from "@/core/components/ui/badge";
@@ -9,18 +10,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/core/components/ui/table";
-import { UserCheck, UserX, ShieldCheck, Utensils, Flag } from "lucide-react";
+import { UserCheck, UserX, ShieldCheck, Utensils, Flag, Edit } from "lucide-react";
 
 interface StaffListTableProps {
   loading: boolean;
   mods: any[];
   toggleActive: (id: string, active: boolean) => void;
+  openEditModal: (staff: any) => void;
 }
 
 export function StaffListTable({
   loading,
   mods,
   toggleActive,
+  openEditModal,
 }: StaffListTableProps) {
   return (
     <Card className="p-6">
@@ -66,6 +69,7 @@ export function StaffListTable({
               m.moderatorType === "administration" ||
               m.moderatorType === "full";
             const isDiscipline = m.moderatorType === "discipline_monitor";
+            const isSecurity = m.role === "security_guard" || m.moderatorType === "security_guard";
 
             return (
               <TableRow key={m._id}>
@@ -92,6 +96,8 @@ export function StaffListTable({
                         ? "default"
                         : isDiscipline
                         ? "destructive"
+                        : isSecurity
+                        ? "outline"
                         : "secondary"
                     }
                     className="capitalize gap-1 text-xs font-medium"
@@ -103,6 +109,10 @@ export function StaffListTable({
                     ) : isDiscipline ? (
                       <>
                         <Flag className="h-3.5 w-3.5" /> Discipline Warden
+                      </>
+                    ) : isSecurity ? (
+                      <>
+                        🛡️ Security Guard
                       </>
                     ) : (
                       <>
@@ -119,11 +129,20 @@ export function StaffListTable({
                     {m.isActive ? "Active" : "Disabled"}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-right">
+                <TableCell className="text-right space-x-1">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => openEditModal(m)}
+                    title="Edit Staff Details"
+                  >
+                    <Edit className="h-4 w-4 text-muted-foreground hover:text-primary" />
+                  </Button>
                   <Button
                     size="sm"
                     variant="ghost"
                     onClick={() => toggleActive(m._id, m.isActive)}
+                    title={m.isActive ? "Disable Account" : "Enable Account"}
                   >
                     {m.isActive ? (
                       <UserX className="h-4 w-4 text-destructive" />

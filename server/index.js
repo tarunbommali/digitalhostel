@@ -25,6 +25,7 @@ app.use("/api/flags", require("./routes/flags"));
 app.use("/api/lookups", require("./routes/lookups"));
 app.use("/api/stats", require("./routes/stats"));
 app.use("/api/audit-logs", require("./routes/logs"));
+app.use("/api/outings", require("./routes/outings"));
 
 // Error handling fallback
 app.use((err, req, res, _next) => {

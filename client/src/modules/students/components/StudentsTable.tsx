@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/core/components/ui/table";
-import { Pencil, UserCheck, UserX } from "lucide-react";
+import { Pencil, UserCheck, UserX, RefreshCw } from "lucide-react";
 
 interface StudentsTableProps {
   loading: boolean;
@@ -17,6 +17,7 @@ interface StudentsTableProps {
   role: string | null;
   openEditModal: (student: any) => void;
   toggleStatus: (id: string, currentActive: boolean) => void;
+  renewPass?: (id: string, name: string) => void;
 }
 
 export function StudentsTable({
@@ -25,6 +26,7 @@ export function StudentsTable({
   role,
   openEditModal,
   toggleStatus,
+  renewPass,
 }: StudentsTableProps) {
   return (
     <Table>

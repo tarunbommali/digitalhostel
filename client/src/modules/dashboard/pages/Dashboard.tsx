@@ -9,6 +9,9 @@ import { DigitalIdCard } from "../components/DigitalIdCard";
 import { ChangePasswordCard } from "../components/ChangePasswordCard";
 import { Skeleton } from "@/core/components/ui/skeleton";
 
+import { StudentOutingStatusCard } from "../components/StudentOutingStatusCard";
+import GuardScannerPage from "@/modules/guard/pages/GuardScanner";
+
 function StudentDashboard() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -70,9 +73,12 @@ function StudentDashboard() {
           <StudentProfileCard s={s} bed={bed} />
         </div>
         <div>
-          <DigitalIdCard s={s} />
+          <DigitalIdCard s={s} bed={bed} />
         </div>
       </div>
+
+      {/* Outing Status & Logbook History Card */}
+      <StudentOutingStatusCard />
 
       <ChangePasswordCard />
     </div>
@@ -81,6 +87,7 @@ function StudentDashboard() {
 
 export function Dashboard() {
   const { role } = useAuth();
+  if (role === "security_guard") return <GuardScannerPage />;
   if (role === "admin") return <AdminDashboardView />;
   if (role === "moderator") return <ModeratorDashboardView />;
   return <StudentDashboard />;
