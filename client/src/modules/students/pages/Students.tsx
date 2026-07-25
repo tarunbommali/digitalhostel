@@ -40,6 +40,9 @@ export function StudentsPage() {
   const [editingStudentId, setEditingStudentId] = useState<string | null>(null);
   const [editCountryCode, setEditCountryCode] = useState("+91");
   const [editPhoneDigits, setEditPhoneDigits] = useState("");
+  const [editGuardianCountryCode, setEditGuardianCountryCode] = useState("+91");
+  const [editGuardianPhoneDigits, setEditGuardianPhoneDigits] = useState("");
+
   const [editForm, setEditForm] = useState({
     firstName: "",
     lastName: "",
@@ -50,6 +53,10 @@ export function StudentsPage() {
     programType: "UG",
     departmentId: "",
     academicYearId: "",
+    bloodGroup: "B+",
+    guardianPhone: "",
+    emergencyContact: "",
+    photoUrl: "",
     status: "active",
   });
   const [busyEdit, setBusyEdit] = useState(false);
@@ -108,6 +115,11 @@ export function StudentsPage() {
     setEditCountryCode("+91");
     setEditPhoneDigits(digitsOnly.slice(-10));
 
+    const rawGuardianPhone = student.guardianPhone || student.emergencyContact || "";
+    const gDigitsOnly = rawGuardianPhone.replace(/\D/g, "");
+    setEditGuardianCountryCode("+91");
+    setEditGuardianPhoneDigits(gDigitsOnly.slice(-10));
+
     const fName = student.firstName || (student.fullName || "").split(" ")[0] || "";
     const lName = student.lastName || (student.fullName || "").split(" ").slice(1).join(" ") || "";
 
@@ -121,6 +133,10 @@ export function StudentsPage() {
       programType: student.programType || "UG",
       departmentId: student.department?._id || student.department || "",
       academicYearId: student.academicYear?._id || student.academicYear || "",
+      bloodGroup: student.bloodGroup || "B+",
+      guardianPhone: student.guardianPhone || student.emergencyContact || "",
+      emergencyContact: student.emergencyContact || student.guardianPhone || "",
+      photoUrl: student.photoUrl || "",
       status: student.status || "active",
     });
     setEditModalOpen(true);
@@ -135,8 +151,17 @@ export function StudentsPage() {
       ? `${editCountryCode} ${editPhoneDigits.trim()}`
       : "";
 
+    const fullGuardianPhone = editGuardianPhoneDigits.trim()
+      ? `${editGuardianCountryCode} ${editGuardianPhoneDigits.trim()}`
+      : "";
+
     try {
-      await api.put(`/students/${editingStudentId}`, { ...editForm, phone: fullPhone });
+      await api.put(`/students/${editingStudentId}`, {
+        ...editForm,
+        phone: fullPhone,
+        guardianPhone: fullGuardianPhone,
+        emergencyContact: fullGuardianPhone,
+      });
       toast.success("Student profile updated successfully");
       setEditModalOpen(false);
       fetchStudents();
@@ -215,6 +240,8 @@ export function StudentsPage() {
         editForm={editForm} setEditForm={setEditForm}
         editCountryCode={editCountryCode} setEditCountryCode={setEditCountryCode}
         editPhoneDigits={editPhoneDigits} setEditPhoneDigits={setEditPhoneDigits}
+        editGuardianCountryCode={editGuardianCountryCode} setEditGuardianCountryCode={setEditGuardianCountryCode}
+        editGuardianPhoneDigits={editGuardianPhoneDigits} setEditGuardianPhoneDigits={setEditGuardianPhoneDigits}
         departments={departments} academicYears={academicYears}
         busyEdit={busyEdit} handleUpdateStudent={handleUpdateStudent}
         onRenewPass={() => editingStudentId && handleRenewPass(editingStudentId, editForm.fullName)}

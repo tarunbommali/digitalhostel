@@ -27,6 +27,10 @@ interface EditStudentModalProps {
   setEditCountryCode: (code: string) => void;
   editPhoneDigits: string;
   setEditPhoneDigits: (digits: string) => void;
+  editGuardianCountryCode: string;
+  setEditGuardianCountryCode: (code: string) => void;
+  editGuardianPhoneDigits: string;
+  setEditGuardianPhoneDigits: (digits: string) => void;
   departments: any[];
   academicYears: any[];
   busyEdit: boolean;
@@ -43,6 +47,10 @@ export function EditStudentModal({
   setEditCountryCode,
   editPhoneDigits,
   setEditPhoneDigits,
+  editGuardianCountryCode,
+  setEditGuardianCountryCode,
+  editGuardianPhoneDigits,
+  setEditGuardianPhoneDigits,
   departments,
   academicYears,
   busyEdit,
@@ -95,12 +103,52 @@ export function EditStudentModal({
             />
           </div>
           <div className="space-y-1.5">
-            <Label>Phone Number</Label>
+            <Label>Student Phone Number</Label>
             <PhoneInput
               countryCode={editCountryCode}
               setCountryCode={setEditCountryCode}
               phoneDigits={editPhoneDigits}
               setPhoneDigits={setEditPhoneDigits}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Parent / Guardian Emergency Contact</Label>
+            <PhoneInput
+              countryCode={editGuardianCountryCode}
+              setCountryCode={setEditGuardianCountryCode}
+              phoneDigits={editGuardianPhoneDigits}
+              setPhoneDigits={setEditGuardianPhoneDigits}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Blood Group</Label>
+            <Select
+              value={editForm.bloodGroup || "B+"}
+              onValueChange={(v) => setEditForm({ ...editForm, bloodGroup: v })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Blood Group" />
+              </SelectTrigger>
+              <SelectContent>
+                {["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"].map((bg) => (
+                  <SelectItem key={bg} value={bg}>
+                    {bg}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Student Photo URL (Optional)</Label>
+            <Input
+              placeholder="https://example.com/photo.jpg"
+              value={editForm.photoUrl || ""}
+              onChange={(e) =>
+                setEditForm({ ...editForm, photoUrl: e.target.value })
+              }
             />
           </div>
           <div className="md:col-span-2 space-y-1.5">

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { api } from "@/core/lib/api";
 import { Card } from "@/core/components/ui/card";
 import { Input } from "@/core/components/ui/input";
@@ -26,6 +26,8 @@ import {
   ShieldCheck,
   UserCheck,
 } from "lucide-react";
+import { LiveCameraScanner } from "@/modules/attendance/components/LiveCameraScanner";
+import { useCameraScanner } from "@/modules/attendance/hooks/useCameraScanner";
 
 export function GuardScannerPage() {
   const [searchInput, setSearchInput] = useState("");
@@ -50,17 +52,13 @@ export function GuardScannerPage() {
     fetchLogbook();
   }, []);
 
-  const handleVerify = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!searchInput.trim()) {
-      toast.error("Please enter a Reg No or scan Digital ID");
-      return;
-    }
+  const verifyCode = useCallback(async (codeToVerify: string) => {
+    if (!codeToVerify.trim()) return;
     setLoadingScan(true);
     setScannedData(null);
 
     try {
-      const res: any = await api.post("/outings/verify-scan", { code: searchInput.trim() });
+      const res: any = await api.post("/outings/verify-scan", { code: codeToVerify.trim() });
       if (res.ok) {
         setScannedData(res);
         toast.success(`Student Verified: ${res.student.fullName}`);
@@ -70,7 +68,33 @@ export function GuardScannerPage() {
     } finally {
       setLoadingScan(false);
     }
+  }, []);
+
+  const handleVerify = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!searchInput.trim()) {
+      toast.error("Please enter a Reg No or scan Digital ID");
+      return;
+    }
+    verifyCode(searchInput);
   };
+
+  const handleScanSuccess = useCallback(
+    async (extractedUid: string) => {
+      setSearchInput(extractedUid);
+      await verifyCode(extractedUid);
+    },
+    [verifyCode]
+  );
+
+  const {
+    scannerActive,
+    setScannerActive,
+    availableCameras,
+    selectedCameraId,
+    setSelectedCameraId,
+    cameraError,
+  } = useCameraScanner(handleScanSuccess);
 
   const handleRecordMovement = async (type: "out" | "in") => {
     if (!scannedData || !scannedData.student) return;
@@ -155,6 +179,16 @@ export function GuardScannerPage() {
                 Verify Student Card
               </Button>
             </form>
+
+            {/* Live Camera Scanner */}
+            <LiveCameraScanner
+              scannerActive={scannerActive}
+              setScannerActive={setScannerActive}
+              availableCameras={availableCameras}
+              selectedCameraId={selectedCameraId}
+              setSelectedCameraId={setSelectedCameraId}
+              cameraError={cameraError}
+            />
 
             {/* Quick Demo Test Buttons */}
             <div className="mt-4 pt-3 border-t text-xs text-muted-foreground space-y-2">

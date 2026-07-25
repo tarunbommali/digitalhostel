@@ -34,10 +34,15 @@ export function NewStudent() {
     programType: "UG" as "UG" | "PG",
     departmentId: "",
     academicYearId: "",
+    bloodGroup: "B+",
+    guardianPhone: "",
+    photoUrl: "",
   });
 
   const [countryCode, setCountryCode] = useState("+91");
   const [phoneDigits, setPhoneDigits] = useState("");
+  const [guardianCountryCode, setGuardianCountryCode] = useState("+91");
+  const [guardianPhoneDigits, setGuardianPhoneDigits] = useState("");
 
   const [depts, setDepts] = useState<any[]>([]);
   const [years, setYears] = useState<any[]>([]);
@@ -110,8 +115,17 @@ export function NewStudent() {
     }
     setBusy(true);
     const fullPhone = phoneDigits.trim() ? `${countryCode} ${phoneDigits.trim()}` : "";
+    const fullGuardianPhone = guardianPhoneDigits.trim()
+      ? `${guardianCountryCode} ${guardianPhoneDigits.trim()}`
+      : "";
+
     try {
-      const r: any = await api.post("/students", { ...form, phone: fullPhone });
+      const r: any = await api.post("/students", {
+        ...form,
+        phone: fullPhone,
+        guardianPhone: fullGuardianPhone,
+        emergencyContact: fullGuardianPhone,
+      });
       toast.success(`Student created · Hostel UID ${r.student.hostelUid}`);
       navigate("/students");
     } catch (err: any) {
@@ -169,12 +183,50 @@ export function NewStudent() {
           </div>
 
           <div className="space-y-1.5">
-            <Label>Phone Number</Label>
+            <Label>Student Phone Number</Label>
             <PhoneInput
               countryCode={countryCode}
               setCountryCode={setCountryCode}
               phoneDigits={phoneDigits}
               setPhoneDigits={setPhoneDigits}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Parent / Guardian Emergency Contact</Label>
+            <PhoneInput
+              countryCode={guardianCountryCode}
+              setCountryCode={setGuardianCountryCode}
+              phoneDigits={guardianPhoneDigits}
+              setPhoneDigits={setGuardianPhoneDigits}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Blood Group</Label>
+            <Select
+              value={form.bloodGroup}
+              onValueChange={(v) => setForm({ ...form, bloodGroup: v })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Blood Group" />
+              </SelectTrigger>
+              <SelectContent>
+                {["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"].map((bg) => (
+                  <SelectItem key={bg} value={bg}>
+                    {bg}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Student Photo URL (Optional)</Label>
+            <Input
+              placeholder="https://example.com/photo.jpg"
+              value={form.photoUrl}
+              onChange={(e) => setForm({ ...form, photoUrl: e.target.value })}
             />
           </div>
 

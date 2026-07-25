@@ -175,6 +175,10 @@ router.post("/", authMiddleware, requireRole(["admin", "moderator"]), async (req
     programType,
     departmentId,
     academicYearId,
+    bloodGroup,
+    guardianPhone,
+    emergencyContact,
+    photoUrl,
     dateJoined,
   } = req.body;
 
@@ -226,6 +230,10 @@ router.post("/", authMiddleware, requireRole(["admin", "moderator"]), async (req
       programType,
       department: departmentId,
       academicYear: academicYearId,
+      bloodGroup: bloodGroup || "B+",
+      emergencyContact: emergencyContact || guardianPhone || "",
+      guardianPhone: guardianPhone || emergencyContact || "",
+      photoUrl: photoUrl || "",
       dateJoined: new Date(),
       createdAt: new Date(),
     });
@@ -435,6 +443,10 @@ router.put(
       programType,
       departmentId,
       academicYearId,
+      bloodGroup,
+      guardianPhone,
+      emergencyContact,
+      photoUrl,
       status,
     } = req.body;
 
@@ -456,6 +468,10 @@ router.put(
       if (programType) student.programType = programType;
       if (departmentId) student.department = departmentId;
       if (academicYearId) student.academicYear = academicYearId;
+      if (bloodGroup) student.bloodGroup = bloodGroup;
+      if (guardianPhone !== undefined) student.guardianPhone = guardianPhone;
+      if (emergencyContact !== undefined) student.emergencyContact = emergencyContact;
+      if (photoUrl !== undefined) student.photoUrl = photoUrl;
       if (status) student.status = status;
 
       await student.save();
