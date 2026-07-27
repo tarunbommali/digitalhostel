@@ -1,4 +1,4 @@
-# 🏫 JNTUGV Hostel Management & Digital Pass System
+# Inside Home
 
 A state-of-the-art, multi-tenant Hostel Management Web Application designed for **JNTUGV University**. Built with **React 18**, **TypeScript**, **Vite**, **Tailwind CSS**, **Express.js**, and **MongoDB / Mongoose**.
 
