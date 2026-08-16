@@ -32,6 +32,16 @@ export function AuthPage() {
   }, [slug, fetchTenantBySlug]);
 
   useEffect(() => {
+    if (organization?.name) {
+      document.title = `${organization.name} | Access Portal - Campus Stay`;
+    } else if (slug) {
+      document.title = `Hostel Portal (${slug}) | Campus Stay`;
+    } else {
+      document.title = "Sign In | Campus Stay";
+    }
+  }, [organization, slug]);
+
+  useEffect(() => {
     if (!authLoading && user && role) {
       if (role === "super_admin") {
         navigate("/super-admin", { replace: true });

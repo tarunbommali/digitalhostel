@@ -9,7 +9,7 @@ import Header from "./Header";
 
 export default function AppLayout() {
   const { user, role } = useAuth();
-  const { fetchTenantBySlug } = useTenant();
+  const { organization, fetchTenantBySlug } = useTenant();
   const location = useLocation();
   const { slug } = useParams<{ slug: string }>();
 
@@ -23,6 +23,21 @@ export default function AppLayout() {
       fetchTenantBySlug(slug);
     }
   }, [location.pathname, slug, fetchTenantBySlug, dispatch]);
+
+  // Dynamically update document title based on route and tenant organization
+  useEffect(() => {
+    const orgName = organization?.name || "Campus Stay";
+    const segment = location.pathname.split("/").filter(Boolean).pop() || "dashboard";
+    const formattedSegment =
+      segment === "dashboard"
+        ? "Dashboard"
+        : segment
+            .split("-")
+            .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+            .join(" ");
+
+    document.title = `${formattedSegment} | ${orgName}`;
+  }, [location.pathname, organization]);
 
   // Early return if no user or role
   if (!user || !role) return null;

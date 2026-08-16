@@ -1,12 +1,58 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Building2, MapPin, Search, ArrowRight, CheckCircle2 } from "lucide-react";
+import {
+  Building2,
+  MapPin,
+  Search,
+  ArrowRight,
+  Users,
+  BedDouble,
+  ScanLine,
+  LogOut,
+  CalendarClock,
+  Receipt,
+  ShieldCheck,
+} from "lucide-react";
 import { api } from "@/core/lib/api";
 import { useAuth } from "@/core/context/auth-context";
 import Header from "@/components/layout/Header";
 import { Badge } from "@/core/components/ui/badge";
 import { PricingComparison } from "../components/PricingComparison";
+
+// Grounded in actual API_ENDPOINTS / modules — not invented marketing copy.
+const FEATURES = [
+  {
+    icon: Users,
+    title: "Student Directory",
+    description: "Centralized profiles, academic records, and digital ID cards for every resident.",
+  },
+  {
+    icon: BedDouble,
+    title: "Room & Bed Management",
+    description: "Visual block/floor/room hierarchy with real-time occupancy and transfer workflows.",
+  },
+  {
+    icon: ScanLine,
+    title: "Attendance Scanning",
+    description: "QR-based mess attendance across breakfast, lunch, and dinner sessions.",
+  },
+  {
+    icon: LogOut,
+    title: "Gate Pass & Outings",
+    description: "Scan-out/scan-in logging with live overdue-return tracking for security staff.",
+  },
+  {
+    icon: CalendarClock,
+    title: "Leave Management",
+    description: "Structured approval workflow with automatic rebate-eligible day calculation.",
+  },
+  {
+    icon: Receipt,
+    title: "Billing & Payments",
+    description: "Monthly bill generation, payment reconciliation, and outstanding-dues tracking.",
+  },
+] as const;
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -19,7 +65,6 @@ export default function LandingPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
 
-  // If user is already logged in, redirect directly to their dashboard
   useEffect(() => {
     if (!authLoading && user) {
       if (role === "super_admin") {
@@ -32,6 +77,11 @@ export default function LandingPage() {
   }, [authLoading, user, role, navigate]);
 
   useEffect(() => {
+    document.title = "Campus Stay - Multi-Tenant Hostel Management Platform";
+    document.documentElement.style.removeProperty("--tenant-primary");
+    document.documentElement.style.removeProperty("--tenant-secondary");
+    document.documentElement.style.removeProperty("--tenant-primary-hover");
+    document.documentElement.style.removeProperty("--tenant-primary-foreground");
     fetchInitialData();
     detectUserLocation();
   }, []);
@@ -63,8 +113,7 @@ export default function LandingPage() {
               Vizianagaram: "Vizianagaram",
             };
 
-            const mappedCity = cityMap[city] || city;
-            setDetectedLocation(mappedCity);
+            setDetectedLocation(cityMap[city] || city);
           } catch (error) {
             console.warn("Error getting location details:", error);
             setDetectedLocation("Unknown");
@@ -84,22 +133,15 @@ export default function LandingPage() {
   const fetchInitialData = async () => {
     setLoading(true);
     try {
-      // 1. Fetch public organizations
       const rawOrgs = await api.get<any[]>("/organizations/public", { noAuth: true });
-      const orgList = Array.isArray(rawOrgs)
-        ? rawOrgs
-        : (rawOrgs as any)?.data || [];
+      const orgList = Array.isArray(rawOrgs) ? rawOrgs : (rawOrgs as any)?.data || [];
 
       setOrganizations(orgList);
       setFilteredOrgs(orgList);
 
-      // 2. Extract dynamic locations from fetched orgs + locations endpoint
       try {
         const rawLocations = await api.get<any[]>("/organizations/public/locations", { noAuth: true });
-        const fetchedLocs = Array.isArray(rawLocations)
-          ? rawLocations
-          : (rawLocations as any)?.data || [];
-
+        const fetchedLocs = Array.isArray(rawLocations) ? rawLocations : (rawLocations as any)?.data || [];
         const orgLocs = orgList.map((o: any) => o.location).filter(Boolean);
         const combined = Array.from(new Set([...fetchedLocs, ...orgLocs].map((l: string) => l.trim())));
         setLocations(["All", ...combined]);
@@ -145,16 +187,144 @@ export default function LandingPage() {
     applyFilters(organizations, selectedLocation, term);
   };
 
+  const scrollToDirectory = () => {
+    document.getElementById("directory")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const orgCount = organizations.length;
+  const blockCount = organizations.reduce((sum, o) => sum + (o.blockCount || 0), 0);
+
   return (
     <div className="min-h-screen bg-[var(--color-bg)] flex flex-col font-sans transition-colors duration-200">
       <Header />
 
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-10 md:py-14 space-y-10">
-        {/* Hero Section */}
+      {/* ================= HERO ================= */}
+      <section className="relative overflow-hidden border-b border-[var(--color-border)]">
+        <div
+          className="absolute inset-0 opacity-[0.06] pointer-events-none"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 1px 1px, var(--tenant-primary) 1px, transparent 0)",
+            backgroundSize: "28px 28px",
+          }}
+        />
+        <div
+          className="absolute -top-32 right-[-10%] h-96 w-96 rounded-full blur-3xl opacity-20 pointer-events-none"
+          style={{ background: "var(--tenant-primary)" }}
+        />
+
+        <div className="relative max-w-6xl mx-auto px-4 pt-16 pb-14 md:pt-24 md:pb-20">
+          <div className="max-w-2xl space-y-6">
+            <Badge variant="pro" size="sm" className="inline-flex">
+              Enterprise Multi-Tenant Platform
+            </Badge>
+
+            <h1 className="font-display text-4xl md:text-5xl font-bold tracking-tight text-[var(--text-primary)] leading-[1.1]">
+              Hostel operations, run from{" "}
+              <span className="text-[var(--tenant-primary)]">one platform</span>.
+            </h1>
+
+            <p className="font-body text-sm md:text-base text-[var(--text-secondary)] max-w-xl leading-relaxed">
+              Campus Stay gives colleges and universities a single system for student records,
+              room allocation, mess attendance, gate passes, leaves, and billing — with strict
+              data isolation between every hostel that runs on it.
+            </p>
+
+            <div className="flex flex-wrap items-center gap-3 pt-2">
+              <button
+                onClick={scrollToDirectory}
+                className="inline-flex items-center gap-2 rounded-lg bg-[var(--tenant-primary)] text-[var(--tenant-primary-foreground)] px-5 py-2.5 text-sm font-semibold shadow-sm hover:opacity-90 transition-opacity cursor-pointer"
+              >
+                Find your hostel <ArrowRight className="h-4 w-4" />
+              </button>
+
+              <a
+                href="mailto:hello@campusstay.app"
+                className="inline-flex items-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--text-primary)] px-5 py-2.5 text-sm font-semibold hover:border-[var(--color-border-strong)] transition-colors"
+              >
+                Bring Campus Stay to your campus
+              </a>
+            </div>
+
+            {/* Real derived stats */}
+            {!loading && orgCount > 0 && (
+              <div className="flex items-center gap-6 pt-4 text-xs text-[var(--text-muted)]">
+                <span>
+                  <strong className="text-[var(--text-primary)] font-semibold">{orgCount}</strong>{" "}
+                  institutions onboarded
+                </span>
+                {blockCount > 0 && (
+                  <span>
+                    <strong className="text-[var(--text-primary)] font-semibold">{blockCount}</strong>{" "}
+                    hostel blocks managed
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* ================= CAPABILITIES ================= */}
+      <section className="max-w-6xl mx-auto px-4 py-14 md:py-16">
+        <div className="max-w-xl mb-8">
+          <h2 className="font-display text-2xl font-bold text-[var(--text-primary)] tracking-tight">
+            Everything a hostel admin office needs
+          </h2>
+          <p className="font-body text-sm text-[var(--text-secondary)] mt-2">
+            Six operational modules, one shared data model, zero spreadsheets.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {FEATURES.map(({ icon: Icon, title, description }) => (
+            <div
+              key={title}
+              className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 hover:border-[var(--tenant-primary)]/40 hover:shadow-sm transition-all"
+            >
+              <div className="h-9 w-9 rounded-lg grid place-items-center bg-[var(--tenant-primary)]/10 text-[var(--tenant-primary)] mb-3">
+                <Icon className="h-4.5 w-4.5" />
+              </div>
+              <h3 className="font-h3 text-sm font-bold text-[var(--text-primary)]">{title}</h3>
+              <p className="font-small text-xs text-[var(--text-secondary)] mt-1.5 leading-relaxed">
+                {description}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ================= TRUST / ISOLATION STRIP ================= */}
+      <section className="border-y border-[var(--color-border)] bg-[var(--color-surface-sunken)]/50">
+        <div className="max-w-6xl mx-auto px-4 py-8 flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-8">
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="h-9 w-9 rounded-lg grid place-items-center bg-[var(--color-success)]/10 text-[var(--color-success)]">
+              <ShieldCheck className="h-4.5 w-4.5" />
+            </div>
+            <span className="font-h3 text-sm font-bold text-[var(--text-primary)]">
+              Strict tenant isolation
+            </span>
+          </div>
+          <p className="font-small text-xs text-[var(--text-secondary)] leading-relaxed">
+            Every organization on Campus Stay runs on its own scoped data boundary — one
+            institution's students, bills, and records are never visible to another, even
+            within the same infrastructure.
+          </p>
+        </div>
+      </section>
+
+      {/* ================= DIRECTORY ================= */}
+      <main id="directory" className="flex-1 max-w-6xl w-full mx-auto px-4 py-14 md:py-16 space-y-8">
         <div className="space-y-4">
-          <h1 className="font-display text-3xl md:text-4xl font-bold tracking-tight text-[var(--text-primary)]">
-            Enterprise Multi-Tenant Hostel Directory
-          </h1>
+          <div>
+            <h2 className="font-display text-2xl font-bold tracking-tight text-[var(--text-primary)]">
+              Find your hostel
+            </h2>
+            <p className="font-body text-xs md:text-sm text-[var(--text-secondary)] mt-1 max-w-2xl leading-relaxed">
+              Select your university or residence hall to access digital passes, mess
+              attendance, and room allocations.
+            </p>
+          </div>
 
           <div className="flex items-center gap-3">
             <div className="relative inline-block text-left">
@@ -175,13 +345,8 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
-
-          <p className="font-body text-xs md:text-sm text-[var(--text-secondary)] max-w-2xl leading-relaxed">
-            Select your university or residence hall to access digital passes, mess attendance, and room allocations.
-          </p>
         </div>
 
-        {/* Search Input Filter */}
         <div className="relative w-full max-w-lg">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
           <input
@@ -193,12 +358,11 @@ export default function LandingPage() {
           />
         </div>
 
-        {/* Directory Grid */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="font-display text-base font-bold text-[var(--text-primary)]">
+            <h3 className="font-display text-base font-bold text-[var(--text-primary)]">
               Subscribed Hostels ({filteredOrgs.length})
-            </h2>
+            </h3>
             {detectedLocation && detectedLocation !== "Unknown" && (
               <span className="font-small text-xs text-[var(--tenant-primary)] flex items-center gap-1">
                 <MapPin className="w-3.5 h-3.5" /> Near {detectedLocation}
@@ -281,9 +445,7 @@ export default function LandingPage() {
                     </div>
 
                     <div className="mt-4 pt-3 border-t border-[var(--color-border)]/60 flex items-center justify-between text-xs text-[var(--text-muted)]">
-                      <span className="text-[11px] font-mono text-[var(--text-muted)]">
-                        /{org.slug}
-                      </span>
+                      <span className="text-[11px] font-mono text-[var(--text-muted)]">/{org.slug}</span>
                       <span className="flex items-center gap-1 text-[var(--tenant-primary)] font-medium text-xs group-hover:translate-x-0.5 transition-transform">
                         Access Portal <ArrowRight className="h-3.5 w-3.5" />
                       </span>
@@ -293,22 +455,50 @@ export default function LandingPage() {
               })}
             </div>
           )}
+        </div>
 
-          {/* Platform Plans & Feature Comparison Matrix */}
-          <div className="pt-12 space-y-6">
-            <div>
-              <h2 className="font-display text-xl font-bold text-[var(--text-primary)] tracking-tight">
-                Plan Features & Capabilities Comparison
-              </h2>
-              <p className="font-small text-xs text-[var(--text-secondary)] mt-1">
-                Detailed tier specifications across Basic (Free), Pro, and Enterprise multi-tenant deployments
-              </p>
-            </div>
-
-            <PricingComparison />
+        {/* ================= PRICING ================= */}
+        <div className="pt-14 space-y-6">
+          <div>
+            <h2 className="font-display text-xl font-bold text-[var(--text-primary)] tracking-tight">
+              Plan Features & Capabilities Comparison
+            </h2>
+            <p className="font-small text-xs text-[var(--text-secondary)] mt-1">
+              Detailed tier specifications across Basic, Pro, and Enterprise multi-tenant deployments.
+            </p>
           </div>
+
+          <PricingComparison />
+        </div>
+
+        {/* ================= FINAL CTA ================= */}
+        <div className="mt-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-10 md:px-10 md:py-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div className="max-w-lg">
+            <h3 className="font-display text-xl font-bold text-[var(--text-primary)]">
+              Ready to bring your hostel online?
+            </h3>
+            <p className="font-body text-sm text-[var(--text-secondary)] mt-2 leading-relaxed">
+              New institutions are onboarded by our team to configure tenant branding, quotas,
+              and admin access. Reach out and we'll get your hostel provisioned.
+            </p>
+          </div>
+
+          <a
+            href="mailto:hello@campusstay.app"
+            className="inline-flex items-center gap-2 rounded-lg bg-[var(--tenant-primary)] text-[var(--tenant-primary-foreground)] px-5 py-2.5 text-sm font-semibold shadow-sm hover:opacity-90 transition-opacity shrink-0"
+          >
+            Contact us to get onboarded <ArrowRight className="h-4 w-4" />
+          </a>
         </div>
       </main>
+
+      {/* ================= FOOTER ================= */}
+      <footer className="border-t border-[var(--color-border)] py-8">
+        <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[var(--text-muted)]">
+          <span>© {new Date().getFullYear()} Campus Stay. All rights reserved.</span>
+          <span>Enterprise multi-tenant hostel management platform.</span>
+        </div>
+      </footer>
     </div>
   );
 }

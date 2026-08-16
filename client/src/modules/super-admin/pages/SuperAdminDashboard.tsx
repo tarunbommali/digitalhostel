@@ -78,6 +78,7 @@ export default function SuperAdminDashboard() {
   };
 
   useEffect(() => {
+    document.title = "Platform Administration | Campus Stay";
     fetchOrganizations();
   }, []);
 
