@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 # 🏢 Digital Hostel — Multi-Tenant SaaS Platform
+=======
+# Inside Home
+>>>>>>> d99bafbe5013d606aa466545d484528fba29246f
 
 Digital Hostel is an enterprise multi-tenant hostel management system featuring location-based discovery, tenant branding, role-based access control, digital ID QR scanner workflows, bed allocation concurrency, billing reconciliation, and disaster recovery.
 
