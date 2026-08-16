@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { api } from "@/core/lib/api";
 import { useAuth } from "@/core/context/auth-context";
+import { useDebounce } from "@/utils/useDebounce";
+import { API_ENDPOINTS } from "@/utils/constants";
 import { Card } from "@/core/components/ui/card";
 import { Input } from "@/core/components/ui/input";
 import { Badge } from "@/core/components/ui/badge";
@@ -20,13 +22,16 @@ export function OutingsLogPage() {
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
   const [filterType, setFilterType] = useState<"all" | "out" | "in">("all");
 
   const isStudent = role === "student";
 
   const fetchLogs = () => {
     setLoading(true);
-    const endpoint = isStudent ? "/outings/my-status" : "/outings/logbook";
+    const endpoint = isStudent
+      ? `${API_ENDPOINTS.OUTINGS}/my-status`
+      : `${API_ENDPOINTS.OUTINGS}/logbook`;
     api
       .get<any>(endpoint)
       .then((res) => {
@@ -47,8 +52,8 @@ export function OutingsLogPage() {
   const filteredLogs = logs.filter((log) => {
     if (filterType !== "all" && log.type !== filterType) return false;
 
-    if (!search.trim()) return true;
-    const q = search.toLowerCase();
+    if (!debouncedSearch.trim()) return true;
+    const q = debouncedSearch.toLowerCase();
 
     const stuName = log.student?.fullName?.toLowerCase() || "";
     const regNo = log.student?.registrationNumber?.toLowerCase() || "";

@@ -4,7 +4,7 @@ import { Input } from "@/core/components/ui/input";
 import { Label } from "@/core/components/ui/label";
 import { Button } from "@/core/components/ui/button";
 import { QrCode, Loader2 } from "lucide-react";
-import { Meal } from "./MealTimingBanner";
+import { Meal } from "../types";
 
 interface ManualUidFormProps {
   uid: string;

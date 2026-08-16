@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { api } from "@/core/lib/api";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/utils/errorUtils";
 import { AddStaffForm } from "../components/AddStaffForm";
 import { StaffListTable } from "../components/StaffListTable";
 import { EditStaffModal } from "../components/EditStaffModal";
@@ -50,7 +51,7 @@ export function ModeratorsPage() {
     api
       .get<any[]>("/moderators")
       .then(setMods)
-      .catch((err) => toast.error(err.message || "Failed to load staff accounts"))
+      .catch((err) => toast.error(getErrorMessage(err, "Failed to load staff accounts")))
       .finally(() => setLoading(false));
   }, []);
 
@@ -90,7 +91,7 @@ export function ModeratorsPage() {
       setPhoneDigits("");
       fetchMods();
     } catch (err: any) {
-      toast.error(err.message || "Failed to create staff account");
+      toast.error(getErrorMessage(err, "Failed to create staff account"));
     } finally {
       setBusy(false);
     }
@@ -137,7 +138,7 @@ export function ModeratorsPage() {
       setEditModalOpen(false);
       fetchMods();
     } catch (err: any) {
-      toast.error(err.message || "Failed to update staff account");
+      toast.error(getErrorMessage(err, "Failed to update staff account"));
     } finally {
       setBusyEdit(false);
     }
@@ -149,7 +150,7 @@ export function ModeratorsPage() {
       toast.success(`Account ${!active ? "enabled" : "disabled"}`);
       fetchMods();
     } catch (err: any) {
-      toast.error(err.message || "Failed to toggle status");
+      toast.error(getErrorMessage(err, "Failed to toggle status"));
     }
   }
 

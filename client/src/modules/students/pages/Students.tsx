@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { api } from "@/core/lib/api";
 import { useAuth } from "@/core/context/auth-context";
+import { useDebounce } from "@/utils/useDebounce";
 import { Card } from "@/core/components/ui/card";
 import { Button } from "@/core/components/ui/button";
 import { Plus } from "lucide-react";
@@ -17,6 +18,7 @@ export function StudentsPage() {
 
   // Filter & Pagination States
   const [q, setQ] = useState("");
+  const debouncedQ = useDebounce(q, 300);
   const [selectedDept, setSelectedDept] = useState("all");
   const [selectedYear, setSelectedYear] = useState("all");
   const [selectedProgram, setSelectedProgram] = useState("all");
@@ -78,7 +80,7 @@ export function StudentsPage() {
     const params = new URLSearchParams();
     params.set("page", page.toString());
     params.set("limit", limit.toString());
-    if (q.trim()) params.set("search", q.trim());
+    if (debouncedQ.trim()) params.set("search", debouncedQ.trim());
     if (selectedDept !== "all") params.set("department", selectedDept);
     if (selectedYear !== "all") params.set("academicYear", selectedYear);
     if (selectedProgram !== "all") params.set("programType", selectedProgram);
@@ -102,7 +104,7 @@ export function StudentsPage() {
       })
       .catch((err) => toast.error(err.message || "Failed to load students"))
       .finally(() => setLoading(false));
-  }, [page, q, selectedDept, selectedYear, selectedProgram, selectedGender, duesFilter, sortBy, sortOrder]);
+  }, [page, debouncedQ, selectedDept, selectedYear, selectedProgram, selectedGender, duesFilter, sortBy, sortOrder]);
 
   useEffect(() => {
     fetchStudents();

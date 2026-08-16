@@ -11,7 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/core/components/ui/select";
-import { UserCog, Loader2 } from "lucide-react";
+import { UserCog, Users, QrCode, Utensils, ShieldAlert, CheckCircle2 } from "lucide-react";
+import { SubmitButton } from "@/components/ui/SubmitButton";
 
 interface AddStaffFormProps {
   form: any;
@@ -34,6 +35,67 @@ export function AddStaffForm({
   busy,
   createStaff,
 }: AddStaffFormProps) {
+  // Privilege toggles mapping to moderator types
+  const privileges = [
+    {
+      id: "students_full",
+      moderatorType: "administration",
+      title: "Full Operation on Students",
+      category: "Student Directory",
+      description: "Complete access to create, edit, view directory, allocate rooms, and manage student status.",
+      icon: Users,
+    },
+    {
+      id: "students_add_only",
+      moderatorType: "administration",
+      title: "Adding & Bulk Import Only",
+      category: "Student Directory",
+      description: "Restricted access to create new student accounts & upload CSV spreadsheets only.",
+      icon: Users,
+    },
+    {
+      id: "security_outpass",
+      moderatorType: "security_guard",
+      title: "Security Option (Gate Scanner & Outpass)",
+      category: "Gate Control",
+      description: "Scan student Digital Pass at gate entries/exits & log real-time OUT/IN movement.",
+      icon: QrCode,
+    },
+    {
+      id: "mess_attendance",
+      moderatorType: "attendance_only",
+      title: "Mess Attendance Marking",
+      category: "Dining Hall",
+      description: "Scan student QR cards for breakfast, lunch, and dinner meal attendance marking.",
+      icon: Utensils,
+    },
+    {
+      id: "discipline_flags",
+      moderatorType: "discipline_monitor",
+      title: "Discipline Flags & Safety Reports",
+      category: "Discipline Control",
+      description: "Raise & resolve disciplinary flags, write incident reports, and review leave applications.",
+      icon: ShieldAlert,
+    },
+  ];
+
+  const handlePrivilegeToggle = (privilegeId: string, moderatorTypeVal: string) => {
+    const currentPermissions: string[] = form.permissions || [form.moderatorType || "administration"];
+    let updatedPermissions: string[];
+
+    if (currentPermissions.includes(privilegeId)) {
+      updatedPermissions = currentPermissions.filter((p) => p !== privilegeId);
+    } else {
+      updatedPermissions = [...currentPermissions, privilegeId];
+    }
+
+    setForm({
+      ...form,
+      permissions: updatedPermissions,
+      moderatorType: moderatorTypeVal,
+    });
+  };
+
   return (
     <Card className="p-6">
       <div className="flex items-center gap-2 font-semibold text-base border-b pb-3 mb-4">
@@ -105,38 +167,67 @@ export function AddStaffForm({
             className="font-mono bg-accent/10 border-primary/30"
           />
         </div>
-        <div className="space-y-1.5 md:col-span-2">
-          <Label>Privilege Level / Specific Access *</Label>
-          <Select
-            value={form.moderatorType}
-            onValueChange={(val: any) =>
-              setForm({ ...form, moderatorType: val })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="administration">
-                Administration (Add Students & Draft Bills)
-              </SelectItem>
-              <SelectItem value="discipline_monitor">
-                Discipline Warden / Monitor (Flag Students & Discipline Reports)
-              </SelectItem>
-              <SelectItem value="attendance_only">
-                Mess Attendance Staff (Mess Attendance Marking Only)
-              </SelectItem>
-              <SelectItem value="security_guard">
-                🛡️ Security Guard (Scan Digital ID & Manage Outing Logbook Only)
-              </SelectItem>
-            </SelectContent>
-          </Select>
+
+        {/* Feature & Action Privileges Checkbox Grid */}
+        <div className="space-y-3 md:col-span-2 pt-2">
+          <div className="flex items-center justify-between border-b pb-2">
+            <div>
+              <Label className="text-xs font-bold uppercase tracking-wider text-foreground">
+                Staff Feature & Operational Privileges *
+              </Label>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Select specific operational actions this staff account is allowed to perform.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-2">
+            {privileges.map((item) => {
+              const Icon = item.icon;
+              const isChecked =
+                (form.permissions && form.permissions.includes(item.id)) ||
+                form.moderatorType === item.moderatorType;
+
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => handlePrivilegeToggle(item.id, item.moderatorType)}
+                  className={`p-3.5 rounded-xl border transition-all cursor-pointer flex items-start gap-3 ${
+                    isChecked
+                      ? "border-primary bg-primary/5 shadow-sm"
+                      : "border-border hover:border-muted-foreground/30 bg-card"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isChecked}
+                    onChange={() => handlePrivilegeToggle(item.id, item.moderatorType)}
+                    className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                  />
+                  <div className="space-y-1 flex-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                        <Icon className="h-3.5 w-3.5 text-primary" />
+                        {item.title}
+                      </span>
+                      {isChecked && (
+                        <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />
+                      )}
+                    </div>
+                    <p className="text-[11px] text-muted-foreground leading-tight">
+                      {item.description}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
+
         <div className="md:col-span-2 flex justify-end pt-2">
-          <Button type="submit" disabled={busy}>
-            {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Create
-            Staff Account
-          </Button>
+          <SubmitButton type="submit" loading={busy}>
+            Create Staff Account
+          </SubmitButton>
         </div>
       </form>
     </Card>

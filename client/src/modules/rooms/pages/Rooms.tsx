@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { api } from "@/core/lib/api";
 import { toast } from "sonner";
+import { useDebounce } from "@/utils/useDebounce";
+import { API_ENDPOINTS } from "@/utils/constants";
 import { AddRoomCard } from "../components/AddRoomCard";
 import { AllocateBedCard } from "../components/AllocateBedCard";
 import { RoomsGridTable } from "../components/RoomsGridTable";
@@ -31,8 +33,8 @@ export function RoomsPage() {
     setLoading(true);
     try {
       const [rData, sData, blks] = await Promise.all([
-        api.get<any[]>("/rooms"),
-        api.get<any>("/students?limit=200"),
+        api.get<any[]>(API_ENDPOINTS.ROOMS),
+        api.get<any>(`${API_ENDPOINTS.STUDENTS}?limit=200`),
         api.get<any[]>("/lookups/blocks"),
       ]);
       setRooms(rData);

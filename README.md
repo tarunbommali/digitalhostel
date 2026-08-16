@@ -1,48 +1,64 @@
-# 🏫 JNTUGV Hostel Management & Digital Pass System
+# 🏢 Digital Hostel — Multi-Tenant SaaS Platform
 
-A state-of-the-art, multi-tenant Hostel Management Web Application designed for **JNTUGV University**. Built with **React 18**, **TypeScript**, **Vite**, **Tailwind CSS**, **Express.js**, and **MongoDB / Mongoose**.
+Digital Hostel is an enterprise multi-tenant hostel management system featuring location-based discovery, tenant branding, role-based access control, digital ID QR scanner workflows, bed allocation concurrency, billing reconciliation, and disaster recovery.
 
----
-
-## 🌟 Key Features
-
-### 🔐 1. Multi-Role RBAC (Role-Based Access Control)
-- **OIH (Officer Incharge of Hostel / Main Admin)**: Full system administration, Security Guard and Moderator creation, Hostel Block & Room setup, Bill Batch Modification, and Bill Verification & Release.
-- **Administration Moderator**: Student registration, student profile management, bulk CSV student import, and monthly mess bill drafting/posting.
-- **Discipline Warden**: Student disciplinary flagging, report management, and leave approval.
-- **🛡️ Security Guard**: Digital ID QR Pass Scanning, leave pass verification, gate entry/exit movement recording, and access to the gate outing logbook.
-- **Mess Attendance Staff**: Exclusively restricted to Mess Attendance Marking via live camera QR scanner and USB barcode guns.
-- **Student**: Access to personal Digital Pass, Outing Pass status & gate movement history, monthly fee dues, SBI Collect payment records, and leave applications.
+Built with **React 19**, **TypeScript**, **Vite**, **Tailwind CSS v4**, **Redux Toolkit**, **Express.js**, and **MongoDB / Mongoose**.
 
 ---
 
-### 🪪 2. Digital Pass, Security Guard Scanner & Outing Logbook Engine
-- **Digital QR Pass**: Generates unique Digital ID Passes containing student registration numbers and encrypted payloads.
-- **Security Guard Scanner Portal**: Dedicated gate pass scanner allowing Security Guards to scan student Digital ID QR codes (or enter registration/hostel numbers), verify active leave passes, and log student **OUT (Gate Exit)** or **IN (Gate Entry)** movements into the logbook.
-- **Outing Logbook**: Filterable gate movement history featuring default **Today-only** display, time period range filters, student gender filters (Boys/Girls Hostel), department filters, and instant text search.
-- **Instant Web Audio Feedback**: Zero-latency Web Audio API synthesizers producing pleasant chimes for success and warning buzzes for duplicate/inactive scans.
-- **Laptop & Multi-Camera Cascade**: 4-tier camera fallback cascade with live camera device selector dropdown.
-- **USB 2D Barcode Gun Listener**: Global keyboard listener automatically detecting physical USB QR scanner guns for rapid attendance marking.
-- **Time Slots**: Enforces Breakfast (07:00–10:00 AM), Lunch (12:00–03:00 PM), and Dinner (07:00–10:00 PM) windows.
+## ⚡ Quick Start
+
+### 1. Install Dependencies
+```bash
+npm run install:all
+```
+
+### 2. Configure Environment
+Create `server/.env`:
+```env
+PORT=5000
+MONGODB_URI=mongodb://127.0.0.1:27017/hostel_db
+JWT_SECRET=your_super_secret_jwt_key_at_least_32_chars
+CORS_ORIGIN=http://localhost:5173,http://localhost:3000
+```
+
+### 3. Seed Database
+```bash
+cd server
+npm run seed:admin
+cd ..
+```
+
+### 4. Run Development Server (Frontend + Backend)
+```bash
+npm run dev
+```
+- **Web App**: `http://localhost:5173/`
+- **Super Admin Portal**: `http://localhost:5173/super-admin`
+- **API Health Check**: `http://localhost:5000/health/live`
 
 ---
 
-### 💳 3. Monthly Billing & SBI Collect Payment Workflow
-- **Targeted Bill Generation**: Draft monthly bills for All Hostels, Boys Hostel Only, or Girls Hostel Only.
-- **OIH Verification Workflow**: Bills drafted by staff remain in `Pending Admin Verification` until approved by the **OIH**. Main Admin can **Modify** amounts/descriptions before clicking **Verify & Release**.
-- **SBI Collect Payment Method**: Enforces `sbi_collect` payment method with mandatory SBI Collect Reference Payment IDs.
-- **Locked Student Selection**: Selected students in payment/allocation forms are locked into non-editable badges with explicit "Change" controls.
+## 🔑 Default Credentials
+
+| Portal / Tenant | Route | Email | Password | Role |
+| :--- | :--- | :--- | :--- | :--- |
+| **Super Admin** | `/super-admin` | `superadmin@insidehome.com` | `SuperAdmin@123` | Platform Super Admin |
+| **Skyline Luxury Hostel** | `organization/skyline-luxury/login` | `admin@skylinehostel.com` | `Bommali@2001` | Tenant Admin |
+| **Metro Stays** | `organization/metro-stays/login` | `tarunbommali2810@gmail.com` | `Bommali@2001` | Tenant Admin |
 
 ---
 
-### 🎓 4. Automatic Batch Graduation & Bed Release
-- **Academic Year Completion**: Marking an academic year batch as completed automatically graduates all enrolled students and releases their assigned hostel beds.
+## 🧪 Automated Testing & Verification
 
----
-
-### 🧱 5. Single Responsibility Principle (SRP) Modular Architecture
-- Every page component strictly adheres to clean TypeScript/JSX.
-- Modular folder structure separating UI components, custom hooks, services, utilities, and TypeScript types under `client/src/modules/` and `client/src/core/`.
+Run tests from `server/`:
+```bash
+cd server
+npm test                     # Run all 9 Jest integration test suites (30 tests)
+node tests/securityVerification.js # Run security sanitizer & rate limit checks
+node tests/drRestoreDrill.js       # Run disaster recovery restore simulation
+npm audit                    # Run vulnerability scan
+```
 
 ---
 
@@ -50,98 +66,42 @@ A state-of-the-art, multi-tenant Hostel Management Web Application designed for 
 
 ```text
 DigitalHostel/
-├── package.json                 # Root script runner (concurrently run server & client)
-├── client/                      # Frontend Application (React + Vite + TypeScript)
+├── package.json                 # Root script runner (concurrent dev runner)
+├── client/                      # Frontend Application (React + Vite + TS + Tailwind v4)
 │   ├── src/
-│   │   ├── core/                # Core Design System, Hooks & Lookups
-│   │   │   ├── components/      # PhoneInput, LookupManager, UI primitives
-│   │   │   ├── hooks/           # useHostelLookups, etc.
-│   │   │   ├── lookup/          # Master Lookups Module
-│   │   │   └── utils/           # Formatters & Helpers
-│   │   └── modules/             # Feature Modules
-│   │       ├── attendance/      # Attendance Scanner, Service, Hooks & Components
-│   │       ├── auth/            # Auth, Login & Password Reset
-│   │       ├── bills/           # Monthly Bills & Admin Verification
-│   │       ├── dashboard/       # OIH, Staff, Guard & Student Dashboards
-│   │       ├── flags/           # Student Flagging & Disciplinary Reports
-│   │       ├── guard/           # Security Guard Scanner & Gate Entry Pass
-│   │       ├── leaves/          # Student Leave Applications
-│   │       ├── moderators/      # Staff, Warden & Guard Account Management
-│   │       ├── outings/         # Outing Logbook & Period/Gender/Dept Filtering
-│   │       ├── payments/        # SBI Collect Payments
-│   │       ├── rooms/           # Rooms, Blocks & Bed Allocations
-│   │       ├── settings/        # System Settings & Master Lookups
-│   │       └── students/        # Student Directory & Registration
+│   │   ├── components/          # Reusable UI & Layout Components
+│   │   ├── core/                # Auth & Tenant Contexts, API Client
+│   │   ├── hooks/               # Custom Hooks (useOnline, useDebounce, useAuthUser)
+│   │   ├── modules/             # Feature Modules (students, rooms, bills, guard, etc.)
+│   │   └── App.tsx              # Application Routing
 │   └── package.json
 │
 └── server/                      # Backend REST API (Node.js + Express + Mongoose)
-    ├── middleware/              # Auth & RBAC Middleware
-    ├── models/                  # Mongoose Schemas (User, Student, OutingLog, MonthlyBill, etc.)
-    ├── routes/                  # API Controllers (auth, students, outings, bills, attendance, etc.)
-    ├── services/                # Business Logic Services
-    ├── server.js                # Express App Entrypoint
+    ├── src/
+    │   ├── controllers/         # REST API Controllers
+    │   ├── middleware/          # Auth, RBAC, tenantGuard, rateLimiter, sanitizer, errorHandler
+    │   ├── models/              # 17 Mongoose Schemas with compound indexes
+    │   ├── routes/              # Express API Routes
+    │   ├── services/            # Domain Services & Transaction Logic
+    │   ├── utils/               # configValidator, transactionHelper, responseHelper
+    │   ├── db.js                # Database connection
+    │   ├── index.js             # Express app entrypoint
+    │   └── seed.js              # Multi-tenant deterministic seeder
+    ├── tests/
+    │   ├── integration/         # 9 Jest integration test suites
+    │   ├── setup.js             # Test database setup & auth token helper
+    │   ├── securityVerification.js # Security verification script
+    │   └── drRestoreDrill.js    # Cold-restore simulation runner
     └── package.json
 ```
 
 ---
 
-## 🚀 Getting Started
+## 🛡️ Security & Architecture Standards
 
-### Prerequisites
-- **Node.js** v18+ installed
-- **MongoDB** instance running locally or on MongoDB Atlas
-
-### ⚡ Quick Start (Run Both Client & Server Concurrently)
-
-Install all dependencies (root, client, and server) with a single command:
-```bash
-npm run install:all
-```
-
-Create a `.env` file inside `server/`:
-```env
-PORT=5000
-MONGODB_URI=mongodb://127.0.0.1:27017/hostel_db
-JWT_SECRET=your_secure_jwt_secret_key
-```
-
-Start **both backend and frontend** together concurrently from the root:
-```bash
-npm run dev
-```
-
----
-
-### 🛠️ Individual Execution Options
-
-- **Run Backend Only**: `npm run server`
-- **Run Frontend Only**: `npm run client`
-
-The frontend application will be accessible at `http://localhost:5173` and backend services at `http://localhost:5000`.
-
----
-
-## 🔑 Default Credentials & Roles
-
-| Role / Account | Default Email | Default Password | Access Scope |
-| :--- | :--- | :--- | :--- |
-| **OIH (Main Admin)** | `admin@hostel.edu` | `Admin#123` | Full System Control, Staff/Guard Creation, Bill Verification & Release |
-| **Administration** | `staff@hostel.edu` | `Password#123` | Student Directory, Registration, CSV Import, Bill Drafting |
-| **Discipline Warden** | `warden@hostel.edu` | `Password#123` | Student Flagging & Discipline Reports |
-| **Security Guard** | `guard@hostel.edu` | `Password#123` | Digital ID QR Scanning, Leave Verification, Gate Outing Logbook (`/dashboard`, `/outings`) |
-| **Mess Attendance Staff** | `mess@hostel.edu` | `Password#123` | Mess Attendance Marking Only (`/attendance`) |
-
----
-
-## 🧪 Verification & Build Check
-
-To build the client bundle for production:
-```bash
-cd client
-npm run build
-```
-
----
-
-## 📄 License
-Designed & Developed for **JNTUGV University Hostel Management**.
+1. **Multi-Tenancy**: Strict `organizationId` scoping enforced on all 17 models with compound unique indexes.
+2. **ACID Transactions**: Multi-document writes (`roomService.allocateBed`, `paymentService.verifyAndSettlePayment`) use Mongoose transaction sessions.
+3. **Password Security**: Single-use 15-minute SHA-256 tokens with automatic JWT session invalidation (`tokenVersion` / `passwordChangedAt`).
+4. **Defensive Headers**: `helmet` enabled on all endpoints with strict CORS origin validation.
+5. **Rate Limiting**: In-memory token bucket rate limiters for auth and API routes.
+6. **Centralized Envelope**: Standardized `{ success, message, data, pagination, error }` JSON responses.

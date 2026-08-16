@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/core/context/auth-context";
+import { API_ENDPOINTS } from "@/utils/constants";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,7 +28,7 @@ function StaffLeaves() {
   const fetchLeaves = () => {
     setLoading(true);
     api
-      .get<any[]>("/leaves")
+      .get<any[]>(API_ENDPOINTS.LEAVES)
       .then(setLeaves)
       .catch(console.error)
       .finally(() => setLoading(false));

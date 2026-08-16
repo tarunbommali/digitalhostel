@@ -19,11 +19,16 @@ import {
 } from "@/core/components/ui/dialog";
 import { Label } from "@/core/components/ui/label";
 import { toast } from "sonner";
-import { Building2, Plus, Trash2, Edit, Loader2 } from "lucide-react";
+import { Building2, Plus, Trash2, Edit } from "lucide-react";
 import { HostelBlockItem, HostelGender } from "../types";
 import { HOSTEL_GENDERS } from "../constants";
 import { lookupService } from "../services/lookup.service";
 import { DeleteConfirmModal } from "./DeleteConfirmModal";
+
+import { getErrorMessage } from "@/utils/errorUtils";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { SubmitButton } from "@/components/ui/SubmitButton";
+import { GenderBadge } from "@/components/ui/GenderBadge";
 
 interface HostelBlockManagerProps {
   blocks: HostelBlockItem[];
@@ -62,7 +67,7 @@ export function HostelBlockManager({
       setCode("");
       onUpdate();
     } catch (err: any) {
-      toast.error(err.message || "Failed to add hostel block");
+      toast.error(getErrorMessage(err, "Failed to add hostel block"));
     } finally {
       setBusy(false);
     }
@@ -91,7 +96,7 @@ export function HostelBlockManager({
       setEditModalOpen(false);
       onUpdate();
     } catch (err: any) {
-      toast.error(err.message || "Failed to update hostel block");
+      toast.error(getErrorMessage(err, "Failed to update hostel block"));
     } finally {
       setBusyEdit(false);
     }
@@ -104,7 +109,7 @@ export function HostelBlockManager({
       toast.success(`Hostel Block "${selectedBlock.name}" removed`);
       onUpdate();
     } catch (err: any) {
-      toast.error(err.message || "Failed to delete hostel block");
+      toast.error(getErrorMessage(err, "Failed to delete hostel block"));
     }
   };
 
@@ -140,15 +145,21 @@ export function HostelBlockManager({
               ))}
             </SelectContent>
           </Select>
-          <Button type="submit" disabled={busy || !name.trim()} className="shrink-0">
-            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />} Add
-          </Button>
+          <SubmitButton
+            type="submit"
+            disabled={!name.trim()}
+            loading={busy}
+            icon={Plus}
+            className="shrink-0"
+          >
+            Add
+          </SubmitButton>
         </div>
       </form>
 
       <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
         {blocks.length === 0 && (
-          <p className="text-xs text-muted-foreground italic py-2">No hostel blocks added yet.</p>
+          <EmptyState message="No hostel blocks added yet." icon={Building2} />
         )}
         {blocks.map((b) => (
           <div
@@ -162,9 +173,7 @@ export function HostelBlockManager({
                   {b.code}
                 </Badge>
               )}
-              <Badge variant="outline" className="capitalize text-xs">
-                {b.gender} Hostel
-              </Badge>
+              <GenderBadge gender={b.gender} />
             </div>
             <div className="flex items-center gap-1">
               <Button
@@ -241,9 +250,9 @@ export function HostelBlockManager({
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={busyEdit || !editName.trim()}>
-                {busyEdit && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Save Changes
-              </Button>
+              <SubmitButton type="submit" loading={busyEdit} disabled={!editName.trim()}>
+                Save Changes
+              </SubmitButton>
             </DialogFooter>
           </form>
         </DialogContent>

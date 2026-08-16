@@ -1,47 +1,140 @@
-const API_BASE = window.location.port === '5173'
-  ? 'http://15.207.249.56:5000/api'
-  : '/api';
+import axios, { AxiosError, AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios';
 
-
-
-
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const token = localStorage.getItem("token");
-  const headers = new Headers(options.headers || {});
-
-  if (token) {
-    headers.set("Authorization", `Bearer ${token}`);
-  }
-
-  if (!(options.body instanceof FormData) && !headers.has("Content-Type")) {
-    headers.set("Content-Type", "application/json");
-  }
-
-  const response = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    headers,
-  });
-
-  const data = await response.json().catch(() => ({}));
-
-  if (!response.ok) {
-    throw new Error(data.error || `HTTP error! status: ${response.status}`);
-  }
-
-  return data as T;
+export interface Pagination {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
 }
 
+export interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
+  pagination?: Pagination;
+}
+
+export class ApiError extends Error {
+  status: number;
+  code?: string;
+  details?: unknown;
+
+  constructor(message: string, status: number, code?: string, details?: unknown) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.code = code;
+    this.details = details;
+  }
+}
+
+const rawAxios = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  timeout: 15000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// 1. Request Interceptor: Injects Authoritative JWT
+rawAxios.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+  const token = localStorage.getItem('token') || localStorage.getItem('auth_token');
+  if (token && config.headers) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// 2. Response Error Interceptor: Emits Structured ApiError and Handles Global Auth Expiry
+rawAxios.interceptors.response.use(
+  (response) => response,
+  (error: AxiosError<{ success: boolean; message: string; error?: { code: string; details: unknown } }>) => {
+    const status = error.response?.status || 500;
+    const message = error.response?.data?.message || error.message || 'An unexpected error occurred';
+    const code = error.response?.data?.error?.code;
+    const details = error.response?.data?.error?.details;
+
+    const isLoginRequest = error.config?.url?.includes('/auth/login');
+
+    if (status === 401 && !isLoginRequest) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('auth_user');
+      if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
+        window.location.href = '/login?session_expired=true';
+      }
+    }
+
+    return Promise.reject(new ApiError(message, status, code, details));
+  }
+);
+
+// Typed API Client Wrapper (Guarantees Runtime Return Type === Static TypeScript Type)
+export const http = {
+  get: async <T>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> => {
+    const res = await rawAxios.get<ApiResponse<T>>(url, config);
+    return res.data;
+  },
+  post: async <T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<ApiResponse<T>> => {
+    const res = await rawAxios.post<ApiResponse<T>>(url, data, config);
+    return res.data;
+  },
+  put: async <T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<ApiResponse<T>> => {
+    const res = await rawAxios.put<ApiResponse<T>>(url, data, config);
+    return res.data;
+  },
+  patch: async <T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<ApiResponse<T>> => {
+    const res = await rawAxios.patch<ApiResponse<T>>(url, data, config);
+    return res.data;
+  },
+  delete: async <T>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> => {
+    const res = await rawAxios.delete<ApiResponse<T>>(url, config);
+    return res.data;
+  },
+};
+
+// Backward-compatible api export for existing frontend hooks/components
 export const api = {
-  get: <T>(path: string) => request<T>(path, { method: "GET" }),
-  post: <T>(path: string, body: any) =>
-    request<T>(path, {
-      method: "POST",
-      body: body instanceof FormData ? body : JSON.stringify(body),
-    }),
-  put: <T>(path: string, body?: any) =>
-    request<T>(path, {
-      method: "PUT",
-      body: body ? JSON.stringify(body) : undefined,
-    }),
-  delete: <T>(path: string) => request<T>(path, { method: "DELETE" }),
+  get: async <T>(url: string, options?: { noAuth?: boolean }): Promise<T> => {
+    const res = await rawAxios.get<ApiResponse<T> | T>(url, options?.noAuth ? { headers: { Authorization: '' } } : undefined);
+    const data = res.data;
+    if (data && typeof data === 'object' && 'data' in data && 'success' in data) {
+      return (data as ApiResponse<T>).data;
+    }
+    return data as T;
+  },
+  post: async <T>(url: string, body?: any, options?: { noAuth?: boolean }): Promise<T> => {
+    const res = await rawAxios.post<ApiResponse<T> | T>(url, body, options?.noAuth ? { headers: { Authorization: '' } } : undefined);
+    const data = res.data;
+    if (data && typeof data === 'object' && 'data' in data && 'success' in data) {
+      return (data as ApiResponse<T>).data;
+    }
+    return data as T;
+  },
+  put: async <T>(url: string, body?: any, options?: { noAuth?: boolean }): Promise<T> => {
+    const res = await rawAxios.put<ApiResponse<T> | T>(url, body, options?.noAuth ? { headers: { Authorization: '' } } : undefined);
+    const data = res.data;
+    if (data && typeof data === 'object' && 'data' in data && 'success' in data) {
+      return (data as ApiResponse<T>).data;
+    }
+    return data as T;
+  },
+  patch: async <T>(url: string, body?: any, options?: { noAuth?: boolean }): Promise<T> => {
+    const res = await rawAxios.patch<ApiResponse<T> | T>(url, body, options?.noAuth ? { headers: { Authorization: '' } } : undefined);
+    const data = res.data;
+    if (data && typeof data === 'object' && 'data' in data && 'success' in data) {
+      return (data as ApiResponse<T>).data;
+    }
+    return data as T;
+  },
+  delete: async <T>(url: string, options?: { noAuth?: boolean }): Promise<T> => {
+    const res = await rawAxios.delete<ApiResponse<T> | T>(url, options?.noAuth ? { headers: { Authorization: '' } } : undefined);
+    const data = res.data;
+    if (data && typeof data === 'object' && 'data' in data && 'success' in data) {
+      return (data as ApiResponse<T>).data;
+    }
+    return data as T;
+  },
 };
