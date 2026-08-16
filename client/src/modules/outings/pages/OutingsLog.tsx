@@ -16,6 +16,7 @@ import {
   TableRow,
 } from "@/core/components/ui/table";
 import { Clock, Search, Loader2, ShieldCheck, UserCheck, CalendarDays, Filter } from "lucide-react";
+import { Breadcrumbs } from "@/core/components/ui/Breadcrumbs";
 
 export function OutingsLogPage() {
   const { role } = useAuth();
@@ -72,21 +73,24 @@ export function OutingsLogPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            Hostel Gate Outing Logbook
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            {isStudent
-              ? "View your personal gate entry and exit history"
-              : "Comprehensive gate entry & exit logbook for Admin, Wardens, and Security Guards"}
-          </p>
-        </div>
+      <div className="space-y-3 pb-4 border-b border-[var(--color-border)]">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">
+              Hostel Gate Outing Logbook
+            </h1>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              {isStudent
+                ? "View your personal gate entry and exit history"
+                : "Comprehensive gate entry & exit logbook for Admin, Wardens, and Security Guards"}
+            </p>
+          </div>
 
-        <Button variant="outline" size="sm" onClick={fetchLogs} disabled={loading}>
-          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Refresh Logs
-        </Button>
+          <Button variant="outline" size="sm" onClick={fetchLogs} disabled={loading}>
+            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Refresh Logs
+          </Button>
+        </div>
+        <Breadcrumbs />
       </div>
 
       <Card className="p-4 space-y-4">

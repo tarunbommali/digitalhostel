@@ -1,6 +1,16 @@
 const OrganizationService = require('../services/organizationService');
 const { sendSuccess, sendPaginated } = require('../utils/responseHelper');
 
+const getPublicOrganizations = async (req, res) => {
+  const organizations = await OrganizationService.getPublicOrganizations(req.query);
+  return sendSuccess(res, organizations, 'Public organizations retrieved');
+};
+
+const getPublicLocations = async (req, res) => {
+  const locations = await OrganizationService.getPublicLocations();
+  return sendSuccess(res, locations, 'Public locations retrieved');
+};
+
 const getBySlug = async (req, res) => {
   const publicOrg = await OrganizationService.getBySlug(req.params.slug);
   return sendSuccess(res, publicOrg, 'Organization profile retrieved');
@@ -22,6 +32,8 @@ const updateOrganization = async (req, res) => {
 };
 
 module.exports = {
+  getPublicOrganizations,
+  getPublicLocations,
   getBySlug,
   listOrganizations,
   provisionOrganization,

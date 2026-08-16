@@ -25,6 +25,9 @@ class LookupService {
     };
   }
 
+  /* =========================================================================
+     DEPARTMENTS
+     ========================================================================= */
   static async createDepartment(organizationId, payload) {
     const { name, code } = payload;
     if (!name) {
@@ -68,6 +71,9 @@ class LookupService {
     return { ok: true, message: 'Department deleted successfully' };
   }
 
+  /* =========================================================================
+     ACADEMIC YEARS
+     ========================================================================= */
   static async createAcademicYear(organizationId, payload) {
     const { name, isCurrent } = payload;
     if (!name) {
@@ -118,6 +124,66 @@ class LookupService {
 
     await AcademicYear.deleteOne({ _id: yearId, organizationId });
     return { ok: true, message: 'Academic year deleted successfully' };
+  }
+
+  /* =========================================================================
+     HOSTEL BLOCKS
+     ========================================================================= */
+  static async listBlocks(organizationId) {
+    return Block.find({ organizationId, isActive: true }).sort({ name: 1 }).lean();
+  }
+
+  static async createBlock(organizationId, payload) {
+    const { name, code, gender, description } = payload;
+    if (!name) {
+      throw new BadRequestError('Block name is required');
+    }
+
+    const existing = await Block.findOne({ organizationId, name: name.trim() });
+    if (existing) {
+      throw new ConflictError(`Hostel block '${name}' already exists`);
+    }
+
+    return Block.create({
+      organizationId,
+      name: name.trim(),
+      code: code ? code.trim() : name.slice(0, 3).toUpperCase(),
+      gender: gender || 'boys',
+      description: description ? description.trim() : '',
+      isActive: true,
+    });
+  }
+
+  static async updateBlock(organizationId, blockId, payload) {
+    const block = await Block.findOne({ _id: blockId, organizationId });
+    if (!block) {
+      throw new NotFoundError('Hostel block not found');
+    }
+
+    if (payload.name) block.name = payload.name.trim();
+    if (payload.code) block.code = payload.code.trim();
+    if (payload.gender) block.gender = payload.gender;
+    if (payload.description !== undefined) block.description = payload.description.trim();
+    if (payload.isActive !== undefined) block.isActive = payload.isActive;
+
+    await block.save();
+    return block;
+  }
+
+  static async deleteBlock(organizationId, blockId) {
+    const block = await Block.findOne({ _id: blockId, organizationId });
+    if (!block) {
+      throw new NotFoundError('Hostel block not found');
+    }
+
+    // Check if any rooms exist in this block
+    const roomsInBlock = await Room.countDocuments({ organizationId, hostelBlock: block.name });
+    if (roomsInBlock > 0) {
+      throw new ConflictError(`Cannot delete block '${block.name}' because ${roomsInBlock} rooms are assigned to it.`);
+    }
+
+    await Block.deleteOne({ _id: blockId, organizationId });
+    return { ok: true, message: 'Hostel block deleted successfully' };
   }
 }
 

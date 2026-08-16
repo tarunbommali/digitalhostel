@@ -2,8 +2,8 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import Papa from "papaparse";
 import { api } from "@/lib/api";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card } from "@/core/components/ui/card";
+import { Button } from "@/core/components/ui/button";
 import {
   Table,
   TableBody,
@@ -15,6 +15,7 @@ import {
 import { toast } from "sonner";
 import { Loader2, ArrowLeft, Upload } from "lucide-react";
 import { useAuth } from "@/core/context/auth-context";
+import { Breadcrumbs } from "@/core/components/ui/Breadcrumbs";
 
 type Row = {
   email: string;
@@ -108,13 +109,16 @@ export function ImportStudents() {
   }
 
   return (
-    <div className="space-y-4">
-      <Button asChild variant="ghost" size="sm">
-        <Link to="/students">
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back
-        </Link>
-      </Button>
-      <h1 className="text-2xl font-bold">Bulk import students</h1>
+    <div className="space-y-6 max-w-4xl">
+      <div className="space-y-3 pb-4 border-b border-[var(--color-border)]">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Bulk Import Students</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Upload CSV rosters to batch register students with auto-generated UIDs
+          </p>
+        </div>
+        <Breadcrumbs />
+      </div>
 
       <Card className="p-6 space-y-4">
         <div>

@@ -46,6 +46,26 @@ const deleteAcademicYear = async (req, res) => {
   return sendSuccess(res, result, result.message);
 };
 
+const listBlocks = async (req, res) => {
+  const blocks = await LookupService.listBlocks(req.organizationId);
+  return sendSuccess(res, blocks, 'Hostel blocks retrieved');
+};
+
+const createBlock = async (req, res) => {
+  const block = await LookupService.createBlock(req.organizationId, req.body);
+  return sendSuccess(res, block, 'Hostel block created successfully', 201);
+};
+
+const updateBlock = async (req, res) => {
+  const block = await LookupService.updateBlock(req.organizationId, req.params.id, req.body);
+  return sendSuccess(res, block, 'Hostel block updated successfully');
+};
+
+const deleteBlock = async (req, res) => {
+  const result = await LookupService.deleteBlock(req.organizationId, req.params.id);
+  return sendSuccess(res, result, result.message);
+};
+
 module.exports = {
   getLookups,
   listDepartments,
@@ -56,4 +76,8 @@ module.exports = {
   createAcademicYear,
   updateAcademicYear,
   deleteAcademicYear,
+  listBlocks,
+  createBlock,
+  updateBlock,
+  deleteBlock,
 };

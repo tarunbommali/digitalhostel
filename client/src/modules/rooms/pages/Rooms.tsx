@@ -6,6 +6,7 @@ import { API_ENDPOINTS } from "@/utils/constants";
 import { AddRoomCard } from "../components/AddRoomCard";
 import { AllocateBedCard } from "../components/AllocateBedCard";
 import { RoomsGridTable } from "../components/RoomsGridTable";
+import { Breadcrumbs } from "@/core/components/ui/Breadcrumbs";
 
 export function RoomsPage() {
   const [rooms, setRooms] = useState<any[]>([]);
@@ -112,11 +113,14 @@ export function RoomsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Rooms & Bed Allocation</h1>
-        <p className="text-sm text-muted-foreground">
-          Manage hostel blocks, room capacities, and assign student bed allocations
-        </p>
+      <div className="space-y-3 pb-4 border-b border-[var(--color-border)]">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Rooms & Bed Allocation</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Manage hostel blocks, room capacities, and assign student bed allocations
+          </p>
+        </div>
+        <Breadcrumbs />
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">

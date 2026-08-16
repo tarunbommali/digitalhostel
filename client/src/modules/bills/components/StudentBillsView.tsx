@@ -11,6 +11,7 @@ import {
 } from "@/core/components/ui/table";
 import { StatusBadge } from "./StatusBadge";
 import { MONTHS } from "./PublishBillForm";
+import { Breadcrumbs } from "@/core/components/ui/Breadcrumbs";
 
 export function StudentBillsView() {
   const [bills, setBills] = useState<any[]>([]);
@@ -25,8 +26,17 @@ export function StudentBillsView() {
   }, []);
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-bold">My bills</h1>
+    <div className="space-y-6">
+      <div className="space-y-3 pb-4 border-b border-[var(--color-border)]">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">My Monthly Bills</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            View generated hostel invoices, mess dues, and payment status
+          </p>
+        </div>
+        <Breadcrumbs />
+      </div>
+
       <Card className="overflow-hidden">
         <Table>
           <TableHeader>
@@ -44,7 +54,7 @@ export function StudentBillsView() {
               <TableRow>
                 <TableCell
                   colSpan={6}
-                  className="text-center py-8 text-muted-foreground"
+                  className="text-center py-6 text-muted-foreground"
                 >
                   Loading bills…
                 </TableCell>
@@ -54,38 +64,40 @@ export function StudentBillsView() {
               <TableRow>
                 <TableCell
                   colSpan={6}
-                  className="text-center py-8 text-muted-foreground text-sm"
+                  className="text-center py-6 text-muted-foreground"
                 >
-                  No bills yet.
+                  No bills found.
                 </TableCell>
               </TableRow>
             )}
-            {!loading &&
-              bills.map((b: any) => (
+            {bills.map((b) => {
+              const rem = (b.totalAmount || 0) - (b.paidAmount || 0);
+              return (
                 <TableRow key={b._id}>
-                  <TableCell>
-                    {MONTHS[b.billMonth - 1]} {b.billYear}
+                  <TableCell className="font-medium">
+                    {MONTHS[(b.month || 1) - 1]} {b.year}
                   </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {b.description ?? "—"}
+                  <TableCell>{b.description || "—"}</TableCell>
+                  <TableCell>₹{(b.totalAmount || 0).toLocaleString()}</TableCell>
+                  <TableCell className="text-green-600">
+                    ₹{(b.paidAmount || 0).toLocaleString()}
                   </TableCell>
-                  <TableCell>
-                    ₹{Number(b.amount).toLocaleString("en-IN")}
-                  </TableCell>
-                  <TableCell>
-                    ₹{Number(b.paidAmount).toLocaleString("en-IN")}
-                  </TableCell>
-                  <TableCell>
-                    ₹{Number(b.remainingAmount).toLocaleString("en-IN")}
+                  <TableCell
+                    className={rem > 0 ? "font-semibold text-destructive" : ""}
+                  >
+                    ₹{rem.toLocaleString()}
                   </TableCell>
                   <TableCell>
-                    <StatusBadge s={b.status} />
+                    <StatusBadge s={b.status || "unpaid"} />
                   </TableCell>
                 </TableRow>
-              ))}
+              );
+            })}
           </TableBody>
         </Table>
       </Card>
     </div>
   );
 }
+
+export default StudentBillsView;

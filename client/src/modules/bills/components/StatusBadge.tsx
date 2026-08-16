@@ -1,14 +1,16 @@
+import * as React from "react";
 import { Badge } from "@/core/components/ui/badge";
 
 export function StatusBadge({ s }: { s: string }) {
-  const v =
+  const variant =
     s === "paid"
-      ? "default"
+      ? "success"
       : s === "partially_paid"
-      ? "secondary"
-      : "destructive";
+      ? "warning"
+      : "danger";
+
   return (
-    <Badge variant={v as any} className="capitalize">
+    <Badge variant={variant} size="sm" dot>
       {s.replace("_", " ")}
     </Badge>
   );

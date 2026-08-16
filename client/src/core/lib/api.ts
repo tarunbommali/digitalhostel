@@ -49,7 +49,7 @@ rawAxios.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 
 // 2. Response Error Interceptor: Emits Structured ApiError and Handles Global Auth Expiry
 rawAxios.interceptors.response.use(
-  (response) => response,
+  (response: any) => response,
   (error: AxiosError<{ success: boolean; message: string; error?: { code: string; details: unknown } }>) => {
     const status = error.response?.status || 500;
     const message = error.response?.data?.message || error.message || 'An unexpected error occurred';

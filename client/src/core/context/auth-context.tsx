@@ -33,6 +33,8 @@ export interface User {
   lastName?: string;
   phoneNumber?: string;
   organizationId?: string;
+  organizationSlug?: string;
+  organizationName?: string;
   moderatorType?: ModeratorType;
   emailVerified?: boolean;
   isActive?: boolean;
@@ -127,6 +129,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const data = await api.get<any>("/auth/me");
       const mType = data.moderatorType || "full";
+      
+      const orgObj = typeof data.organizationId === "object" ? data.organizationId : null;
+      const orgId = orgObj ? (orgObj._id || orgObj.id) : (typeof data.organizationId === "string" ? data.organizationId : undefined);
+      const orgSlug = orgObj?.slug || localStorage.getItem("tenant_slug") || undefined;
+      const orgName = orgObj?.name || localStorage.getItem("tenant_name") || undefined;
+
+      if (orgSlug) localStorage.setItem("tenant_slug", orgSlug);
+      if (orgName) localStorage.setItem("tenant_name", orgName);
+
       const userData: User = {
         id: data.id || data._id,
         email: data.email,
@@ -135,7 +146,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         firstName: data.firstName,
         lastName: data.lastName,
         phoneNumber: data.phoneNumber || data.phone,
-        organizationId: data.organizationId,
+        organizationId: orgId,
+        organizationSlug: orgSlug,
+        organizationName: orgName,
         moderatorType: mType,
         emailVerified: data.emailVerified || false,
         isActive: data.isActive !== undefined ? data.isActive : true,
@@ -202,6 +215,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
 
+        const orgObj = typeof data.user.organizationId === "object" ? data.user.organizationId : null;
+        const orgId = orgObj ? (orgObj._id || orgObj.id) : (typeof data.user.organizationId === "string" ? data.user.organizationId : undefined);
+        const orgSlug = organizationSlug || orgObj?.slug || localStorage.getItem("tenant_slug") || undefined;
+        const orgName = orgObj?.name || localStorage.getItem("tenant_name") || undefined;
+
+        if (orgSlug) localStorage.setItem("tenant_slug", orgSlug);
+        if (orgName) localStorage.setItem("tenant_name", orgName);
+
         const mType = data.user.moderatorType || "full";
         const userData: User = {
           id: data.user.id || data.user._id,
@@ -211,7 +232,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           firstName: data.user.firstName,
           lastName: data.user.lastName,
           phoneNumber: data.user.phoneNumber || data.user.phone,
-          organizationId: data.user.organizationId,
+          organizationId: orgId,
+          organizationSlug: orgSlug,
+          organizationName: orgName,
           moderatorType: mType,
           emailVerified: data.user.emailVerified || false,
           isActive: data.user.isActive !== undefined ? data.user.isActive : true,
@@ -238,6 +261,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Ignore errors on logout
     }
     localStorage.removeItem("token");
+    localStorage.removeItem("tenant_slug");
+    localStorage.removeItem("tenant_name");
     clearOrganizationContext();
     setAuthState(null);
   }, [clearOrganizationContext, setAuthState]);

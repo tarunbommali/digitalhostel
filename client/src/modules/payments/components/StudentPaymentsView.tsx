@@ -11,6 +11,7 @@ import {
   TableRow,
 } from "@/core/components/ui/table";
 import { formatCurrency } from "@/core/utils/format";
+import { Breadcrumbs } from "@/core/components/ui/Breadcrumbs";
 
 export function StudentPaymentsView() {
   const [payments, setPayments] = useState<any[]>([]);
@@ -25,8 +26,17 @@ export function StudentPaymentsView() {
   }, []);
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-bold tracking-tight">My Payment History</h1>
+    <div className="space-y-6">
+      <div className="space-y-3 pb-4 border-b border-[var(--color-border)]">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">My Payment History</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Track recorded fee settlements, SBI Collect receipts, and transaction status
+          </p>
+        </div>
+        <Breadcrumbs />
+      </div>
+
       <Card className="overflow-hidden">
         <Table>
           <TableHeader>
@@ -43,9 +53,9 @@ export function StudentPaymentsView() {
               <TableRow>
                 <TableCell
                   colSpan={5}
-                  className="text-center py-8 text-muted-foreground font-medium"
+                  className="text-center py-6 text-muted-foreground"
                 >
-                  Loading payment history…
+                  Loading payments…
                 </TableCell>
               </TableRow>
             )}
@@ -53,37 +63,36 @@ export function StudentPaymentsView() {
               <TableRow>
                 <TableCell
                   colSpan={5}
-                  className="text-center py-8 text-muted-foreground text-sm font-medium"
+                  className="text-center py-6 text-muted-foreground"
                 >
                   No payment records found.
                 </TableCell>
               </TableRow>
             )}
-            {!loading &&
-              payments.map((p: any) => (
-                <TableRow key={p._id}>
-                  <TableCell>
-                    {new Date(p.paymentDate).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell className="font-mono text-xs font-semibold text-primary">
-                    {p.referenceId || "—"}
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {formatCurrency(p.amount)}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="font-medium">
-                      🏛️ SBI Collect
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-xs text-muted-foreground">
-                    {p.remarks ?? "—"}
-                  </TableCell>
-                </TableRow>
-              ))}
+            {payments.map((p) => (
+              <TableRow key={p._id}>
+                <TableCell>
+                  {p.createdAt
+                    ? new Date(p.createdAt).toLocaleDateString()
+                    : "—"}
+                </TableCell>
+                <TableCell className="font-mono">{p.referenceId || "—"}</TableCell>
+                <TableCell className="font-semibold text-green-600">
+                  {formatCurrency(p.amount)}
+                </TableCell>
+                <TableCell>
+                  <Badge variant="outline">{p.paymentMethod || "SBI Collect"}</Badge>
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  {p.remarks || "—"}
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </Card>
     </div>
   );
 }
+
+export default StudentPaymentsView;

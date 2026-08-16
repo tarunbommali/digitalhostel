@@ -1,9 +1,11 @@
 import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
 import { type AppRole } from "@/core/context/auth-context";
+import { ThemeProvider } from "@/core/context/theme-context";
 import { ProtectedRoute } from "@/core/components/ProtectedRoute";
 import RootLayout from "@/components/layout/RootLayout";
 import AppLayout from "@/components/layout/AppLayout";
 import { SuperAdminGuard } from "@/components/layout/SuperAdminGuard";
+import { PublicGuard } from "@/components/layout/PublicGuard";
 import ErrorBoundary from "@/components/layout/ErrorBoundary";
 
 import LandingPage from "@/modules/landing/pages/LandingPage";
@@ -33,22 +35,27 @@ const appRouter = createBrowserRouter([
     errorElement: <ErrorBoundary />,
     children: [
       {
-        element: <SuperAdminGuard />,
+        element: <PublicGuard />,
         children: [
           { path: "/", element: <LandingPage /> },
           { path: "/super-admin/login", element: <SuperAdminLoginPage /> },
+          { path: "/organization/:slug", element: <AuthPage /> },
           { path: "/organization/:slug/login", element: <AuthPage /> },
           { path: "/auth", element: <AuthPage /> },
           { path: "/forgot-password", element: <ForgotPasswordPage /> },
           { path: "/reset-password", element: <ResetPasswordPage /> },
-          {
-            path: "/super-admin",
-            element: (
-              <ProtectedRoute superAdminOnly>
-                <SuperAdminDashboard />
-              </ProtectedRoute>
-            ),
-          },
+        ],
+      },
+      {
+        path: "/super-admin",
+        element: (
+          <SuperAdminGuard>
+            <ProtectedRoute superAdminOnly>
+              <SuperAdminDashboard />
+            </ProtectedRoute>
+          </SuperAdminGuard>
+        ),
+      },
           {
             path: "/organization/:slug",
             element: <AppLayout />,
@@ -162,12 +169,14 @@ const appRouter = createBrowserRouter([
           { path: "*", element: <Navigate to="/" replace /> },
         ],
       },
-    ],
-  },
-]);
+    ]);
 
 export function App() {
-  return <RouterProvider router={appRouter} />;
+  return (
+    <ThemeProvider>
+      <RouterProvider router={appRouter} />
+    </ThemeProvider>
+  );
 }
 
 export default App;

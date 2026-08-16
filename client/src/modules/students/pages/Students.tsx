@@ -12,6 +12,7 @@ import { StudentsFilterBar } from "../components/StudentsFilterBar";
 import { StudentsTable } from "../components/StudentsTable";
 import { EditStudentModal } from "../components/EditStudentModal";
 import { StudentsPagination } from "../components/StudentsPagination";
+import { Breadcrumbs } from "@/core/components/ui/Breadcrumbs";
 
 export function StudentsPage() {
   const { role } = useAuth();
@@ -201,23 +202,26 @@ export function StudentsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Students Directory</h1>
-          <p className="text-sm text-muted-foreground">
-            Manage student registrations, departments, dues, and statuses ({total} total)
-          </p>
-        </div>
-        {(role === "admin" || role === "moderator") && (
-          <div className="flex gap-2">
-            <Button asChild variant="outline">
-              <Link to="/students/import"><Plus className="mr-2 h-4 w-4" /> Import CSV</Link>
-            </Button>
-            <Button asChild>
-              <Link to="/students/new"><Plus className="mr-2 h-4 w-4" /> New Student</Link>
-            </Button>
+      <div className="space-y-3 pb-4 border-b border-[var(--color-border)]">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Students Directory</h1>
+            <p className="text-sm text-muted-foreground">
+              Manage student registrations, departments, dues, and statuses ({total} total)
+            </p>
           </div>
-        )}
+          {(role === "admin" || role === "moderator") && (
+            <div className="flex gap-2">
+              <Button asChild variant="outline">
+                <Link to="import"><Plus className="mr-2 h-4 w-4" /> Import CSV</Link>
+              </Button>
+              <Button asChild>
+                <Link to="new"><Plus className="mr-2 h-4 w-4" /> New Student</Link>
+              </Button>
+            </div>
+          )}
+        </div>
+        <Breadcrumbs />
       </div>
 
       <StudentsFilterBar

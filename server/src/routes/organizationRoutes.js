@@ -6,10 +6,15 @@ const { requireRole } = require('../middleware/rbac');
 const { validateObjectId } = require('../middleware/sanitizer');
 const { asyncHandler } = require('../utils/responseHelper');
 
-// Public tenant resolution
+// 1. Public Directory Endpoints (Must be registered before /:slug parameter route)
+router.get('/public/locations', asyncHandler(organizationController.getPublicLocations));
+router.get('/public', asyncHandler(organizationController.getPublicOrganizations));
+
+// 2. Public Tenant Slug Profile Resolution (Supports both /by-slug/:slug and /:slug)
+router.get('/by-slug/:slug', asyncHandler(organizationController.getBySlug));
 router.get('/:slug', asyncHandler(organizationController.getBySlug));
 
-// Admin / SuperAdmin updates
+// 3. Admin / SuperAdmin Tenant Settings & Branding Updates
 router.patch(
   '/:id',
   authMiddleware,

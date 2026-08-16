@@ -9,13 +9,64 @@ const {
 const AuditService = require('./auditService');
 
 class OrganizationService {
+  /**
+   * Retrieves active organizations for public hostel directory listing
+   */
+  static async getPublicOrganizations(query = {}) {
+    const filter = { isActive: true };
+
+    if (query.location && query.location !== 'All') {
+      filter.location = { $regex: new RegExp(`^${query.location.trim()}$`, 'i') };
+    }
+
+    if (query.search && query.search.trim()) {
+      const searchRegex = { $regex: query.search.trim(), $options: 'i' };
+      filter.$or = [{ name: searchRegex }, { location: searchRegex }, { slug: searchRegex }];
+    }
+
+    const organizations = await Organization.find(filter)
+      .select('name slug location plan subscriptionStatus branding contactPhone supportEmail isActive createdAt')
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return organizations.map((org) => ({
+      _id: org._id,
+      id: org._id,
+      name: org.name,
+      slug: org.slug,
+      location: org.location,
+      plan: org.plan || 'BASIC',
+      subscriptionStatus: org.subscriptionStatus || 'active',
+      branding: org.branding || {
+        primaryColor: '#6366f1',
+        secondaryColor: '#4f46e5',
+        tagline: 'Smart Multi-Tenant Hostel Living',
+      },
+      contactPhone: org.contactPhone,
+      supportEmail: org.supportEmail,
+      isActive: org.isActive,
+    }));
+  }
+
+  /**
+   * Retrieves unique location list of all active organizations for filtering
+   */
+  static async getPublicLocations() {
+    const locations = await Organization.find({ isActive: true }).distinct('location');
+    const validLocations = locations
+      .filter((loc) => loc && typeof loc === 'string' && loc.trim() !== '')
+      .map((loc) => loc.trim());
+
+    return Array.from(new Set(validLocations));
+  }
+
   static async getBySlug(slug) {
     if (!slug) {
       throw new BadRequestError('Organization slug is required');
     }
 
     const org = await Organization.findOne({ slug: slug.toLowerCase().trim(), isActive: true })
-      .select('name slug location branding settings isActive')
+      .select('name slug location plan subscriptionStatus branding settings isActive')
       .lean();
 
     if (!org) {
@@ -24,15 +75,19 @@ class OrganizationService {
 
     // Return safe public organization DTO
     return {
+      _id: org._id,
       id: org._id,
       name: org.name,
       slug: org.slug,
       location: org.location,
+      plan: org.plan || 'BASIC',
+      subscriptionStatus: org.subscriptionStatus || 'active',
       branding: org.branding || {
         primaryColor: '#6366f1',
         secondaryColor: '#4f46e5',
         tagline: 'Smart Multi-Tenant Hostel Living',
       },
+      settings: org.settings,
       isActive: org.isActive,
     };
   }
@@ -44,7 +99,14 @@ class OrganizationService {
 
     const filter = {};
     if (query.search) {
-      filter.name = { $regex: query.search.trim(), $options: 'i' };
+      const searchRegex = { $regex: query.search.trim(), $options: 'i' };
+      filter.$or = [{ name: searchRegex }, { location: searchRegex }, { slug: searchRegex }];
+    }
+    if (query.plan && query.plan !== 'ALL') {
+      filter.plan = query.plan.toUpperCase();
+    }
+    if (query.subscriptionStatus && query.subscriptionStatus !== 'ALL') {
+      filter.subscriptionStatus = query.subscriptionStatus.toLowerCase();
     }
 
     const [organizations, total] = await Promise.all([
@@ -56,7 +118,18 @@ class OrganizationService {
   }
 
   static async provisionOrganization(payload, actorId) {
-    const { name, slug, location, adminEmail, adminPassword, branding, settings } = payload;
+    const {
+      name,
+      slug,
+      location,
+      adminEmail,
+      adminPassword,
+      branding,
+      settings,
+      plan,
+      subscriptionStatus,
+    } = payload;
+
     if (!name || !slug || !location || !adminEmail || !adminPassword) {
       throw new BadRequestError('Name, slug, location, adminEmail, and adminPassword are required');
     }
@@ -67,13 +140,21 @@ class OrganizationService {
       throw new ConflictError(`Organization with slug '${cleanSlug}' already exists`);
     }
 
+    // Default tier on registration is BASIC (Free subscription) unless specified
+    const selectedPlan = (plan || 'BASIC').toUpperCase();
+    const selectedStatus = (subscriptionStatus || 'active').toLowerCase();
+
     const org = await Organization.create({
       name: name.trim(),
       slug: cleanSlug,
       location: location.trim(),
       adminEmail: adminEmail.toLowerCase().trim(),
+      plan: selectedPlan,
+      subscriptionStatus: selectedStatus,
       branding: branding || {},
       settings: settings || {},
+      isPublic: true,
+      isActive: true,
     });
 
     const adminUser = await User.create({
@@ -91,7 +172,7 @@ class OrganizationService {
       'ORG_PROVISIONED',
       'Organization',
       org._id,
-      { name: org.name, slug: org.slug, admin: adminUser.email }
+      { name: org.name, slug: org.slug, plan: org.plan, admin: adminUser.email }
     );
 
     return { organization: org, adminUser };
@@ -111,6 +192,13 @@ class OrganizationService {
     if (payload.location) org.location = payload.location.trim();
     if (payload.contactPhone) org.contactPhone = payload.contactPhone.trim();
     if (payload.supportEmail) org.supportEmail = payload.supportEmail.trim();
+
+    if (actorUser.role === 'super_admin') {
+      if (payload.plan) org.plan = payload.plan.toUpperCase();
+      if (payload.subscriptionStatus) org.subscriptionStatus = payload.subscriptionStatus.toLowerCase();
+      if (typeof payload.isActive === 'boolean') org.isActive = payload.isActive;
+      if (typeof payload.isPublic === 'boolean') org.isPublic = payload.isPublic;
+    }
 
     if (payload.branding && typeof payload.branding === 'object') {
       org.branding = { ...org.branding.toObject(), ...payload.branding };

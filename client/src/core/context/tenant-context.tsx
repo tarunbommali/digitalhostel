@@ -74,14 +74,13 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
 
   const applyTenantBranding = useCallback((org: Organization | null) => {
     if (!org) return;
+    const primary = org.branding?.primaryColor || "#4F46E5";
+    const secondary = org.branding?.secondaryColor || "#0D9488";
 
-    const root = document.documentElement;
-    const primary = org.branding?.primaryColor || "#6366f1";
-    const secondary = org.branding?.secondaryColor || "#4f46e5";
-
-    root.style.setProperty("--tenant-primary", primary);
-    root.style.setProperty("--tenant-secondary", secondary);
-    root.style.setProperty("--primary", primary);
+    // Calculate WCAG AA contrast and apply tokens
+    import("@/core/theme").then(({ applyTenantTheme }) => {
+      applyTenantTheme(primary, secondary);
+    });
 
     const metaTheme = document.querySelector('meta[name="theme-color"]');
     if (metaTheme) {
@@ -89,7 +88,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (org.name) {
-      document.title = `${org.name} - Inside Home Hostel Management`;
+      document.title = `${org.name} - Campus Stay Management`;
     }
   }, []);
 
@@ -152,7 +151,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem("organizationId");
     document.documentElement.style.removeProperty("--tenant-primary");
     document.documentElement.style.removeProperty("--tenant-secondary");
-    document.title = "Inside Home - Multi-Tenant Hostel Management Platform";
+    document.title = "Campus Stay - Multi-Tenant Hostel Management Platform";
   }, []);
 
   const validateUserAccess = useCallback(

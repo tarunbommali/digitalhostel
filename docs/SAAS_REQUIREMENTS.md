@@ -1,6 +1,6 @@
 # 🏢 SaaS Multi-Tenancy Product - Comprehensive Requirements List
 
-Based on the **Inside Home** enterprise multi-tenant hostel management architecture, this document outlines the exhaustive requirements, patterns, and best practices governing the platform.
+Based on the **Campus Stay** enterprise multi-tenant hostel management architecture, this document outlines the exhaustive requirements, patterns, and best practices governing the platform.
 
 ---
 
@@ -271,7 +271,7 @@ client/src/
 
 ---
 
-## 📊 11. BUSINESS PROCESS REQUIREMENTS (Inside Home Specific)
+## 📊 11. BUSINESS PROCESS REQUIREMENTS (Campus Stay Specific)
 
 ### 11.1 Student Management
 - ✅ Student registration with profile, documents, emergency contact.

@@ -1,6 +1,6 @@
-# 🏗️ Inside Home - SaaS Product Requirements & Naming Blueprint
+# 🏗️ Campus Stay - SaaS Product Requirements & Naming Blueprint
 
-Comprehensive breakdown of core SaaS multi-tenancy requirements, component names, page modules, variable names, and architectural standards for the **Inside Home** hostel management platform.
+Comprehensive breakdown of core SaaS multi-tenancy requirements, component names, page modules, variable names, and architectural standards for the **Campus Stay** hostel management platform.
 
 ---
 

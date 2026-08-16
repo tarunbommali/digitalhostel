@@ -1,6 +1,6 @@
-# 🏢 Inside Home - Design Principles & System Architecture Guide
+# 🏢 Campus Stay - Design Principles & System Architecture Guide
 
-Comprehensive architecture, UI/UX guidelines, state management patterns, and software principles for the Inside Home multi-tenant hostel management platform.
+Comprehensive architecture, UI/UX guidelines, state management patterns, and software principles for the Campus Stay multi-tenant hostel management platform.
 
 ---
 

@@ -1,7 +1,9 @@
+import * as React from "react";
 import { useEffect, useState } from "react";
+import { Users, CalendarCheck, Calendar, AlertTriangle } from "lucide-react";
 import { api } from "@/core/lib/api";
-import { Skeleton } from "@/core/components/ui/skeleton";
 import { StatCard } from "./StatCard";
+import { DashboardSkeleton } from "@/core/components/ui/skeleton";
 
 export function ModeratorDashboardView() {
   const [data, setData] = useState<any>(null);
@@ -16,34 +18,42 @@ export function ModeratorDashboardView() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="space-y-6">
-        <h1 className="text-2xl font-bold tracking-tight">Moderator Dashboard</h1>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton key={i} className="h-24 w-full rounded-xl" />
-          ))}
-        </div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Staff / Warden Dashboard</h1>
-        <p className="text-sm text-muted-foreground">
-          Attendance tracking and discipline management
+      <div className="border-b border-[var(--color-border)] pb-4">
+        <h1 className="font-h1 text-[var(--text-primary)]">Staff & Warden Portal</h1>
+        <p className="font-small text-[var(--text-secondary)] mt-0.5">
+          Mess attendance supervision, leave pass processing, and discipline oversight
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <StatCard label="Total Students" value={data?.students ?? 0} />
-        <StatCard label="Breakfast Today" value={data?.breakfast ?? 0} />
-        <StatCard label="Lunch Today" value={data?.lunch ?? 0} />
-        <StatCard label="Dinner Today" value={data?.dinner ?? 0} />
-        <StatCard label="Pending Leaves" value={data?.pendingLeaves ?? 0} />
-        <StatCard label="Open Flag Reports" value={data?.openFlags ?? 0} />
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        <StatCard
+          label="Total Students"
+          value={data?.students ?? 0}
+          icon={<Users className="h-5 w-5" />}
+        />
+        <StatCard
+          label="Today's Meal Scans"
+          value={(data?.breakfast ?? 0) + (data?.lunch ?? 0) + (data?.dinner ?? 0)}
+          hint={`B: ${data?.breakfast ?? 0} · L: ${data?.lunch ?? 0} · D: ${data?.dinner ?? 0}`}
+          icon={<CalendarCheck className="h-5 w-5" />}
+        />
+        <StatCard
+          label="Pending Leave Passes"
+          value={data?.pendingLeaves ?? 0}
+          hint={data?.pendingLeaves > 0 ? "Awaiting Review" : "All Processed"}
+          icon={<Calendar className="h-5 w-5" />}
+        />
+        <StatCard
+          label="Active Disciplinary Flags"
+          value={data?.openFlags ?? 0}
+          hint={data?.openFlags > 0 ? "Action Required" : "No Open Incidents"}
+          icon={<AlertTriangle className="h-5 w-5" />}
+        />
       </div>
     </div>
   );

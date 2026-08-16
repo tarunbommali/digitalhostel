@@ -28,25 +28,25 @@ export default function AppLayout() {
   if (!user || !role) return null;
 
   return (
-    <div className="flex min-h-screen bg-muted/30">
-      {/* Plug-and-Play Sidebar */}
+    <div className="flex min-h-screen bg-[var(--color-bg)] text-[var(--text-primary)]">
+      {/* Persistent Collapsible Sidebar */}
       <Sidebar />
 
-      {/* Mobile Overlay */}
+      {/* Mobile Backdrop */}
       {isSidebarOpen && (
         <div
-          className="fixed inset-0 z-30 bg-black/40 md:hidden"
+          className="fixed inset-0 z-30 bg-black/60 backdrop-blur-xs md:hidden"
           onClick={() => dispatch(closeMenu())}
         />
       )}
 
-      {/* Main Content */}
-      <div className="flex flex-1 flex-col">
-        {/* Plug-and-Play Header */}
+      {/* Main Content Area */}
+      <div className="flex flex-1 flex-col min-w-0">
+        {/* Sticky Topbar */}
         <Header />
 
-        {/* Page Content dynamically rendered via Outlet */}
-        <main className="flex-1 p-4 md:p-6">
+        {/* Responsive Content Container */}
+        <main className="flex-1 w-full max-w-[1440px] mx-auto p-4 md:p-6 lg:p-8">
           <Outlet />
         </main>
       </div>

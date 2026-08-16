@@ -1,6 +1,5 @@
-import { Card } from "@/core/components/ui/card";
-import { Input } from "@/core/components/ui/input";
-import { Button } from "@/core/components/ui/button";
+import * as React from "react";
+import { Search, Filter, Calendar, ArrowUpDown, X } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -8,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/core/components/ui/select";
-import { Search, Filter, Calendar, ArrowUpDown } from "lucide-react";
+import { Button } from "@/core/components/ui/button";
 
 interface StudentsFilterBarProps {
   q: string;
@@ -53,15 +52,36 @@ export function StudentsFilterBar({
   academicYears,
   setPage,
 }: StudentsFilterBarProps) {
+  const hasActiveFilters =
+    q.trim() !== "" ||
+    selectedGender !== "all" ||
+    selectedProgram !== "all" ||
+    selectedDept !== "all" ||
+    selectedYear !== "all" ||
+    duesFilter !== "all";
+
+  const clearAllFilters = () => {
+    setQ("");
+    setSelectedGender("all");
+    setSelectedProgram("all");
+    setSelectedDept("all");
+    setSelectedYear("all");
+    setDuesFilter("all");
+    setPage(1);
+  };
+
+  const getDeptName = (id: string) => departments.find((d) => d._id === id)?.name || id;
+  const getYearName = (id: string) => academicYears.find((y) => y._id === id)?.name || id;
+
   return (
-    <Card className="p-4">
-      <div className="grid gap-3 md:grid-cols-8">
+    <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4 shadow-sm space-y-3">
+      <div className="grid gap-2.5 grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-8 text-xs">
         {/* Search */}
-        <div className="relative md:col-span-2">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            className="pl-9"
-            placeholder="Search name, UID, reg no, email…"
+        <div className="relative sm:col-span-2">
+          <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-[var(--text-muted)]" />
+          <input
+            className="w-full h-9 rounded-md bg-[var(--color-surface-sunken)] border border-[var(--color-border)] pl-9 pr-3 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus-visible:outline-none focus-visible:border-[var(--tenant-primary)]"
+            placeholder="Search student, UID, reg no, email…"
             value={q}
             onChange={(e) => {
               setQ(e.target.value);
@@ -79,10 +99,10 @@ export function StudentsFilterBar({
               setPage(1);
             }}
           >
-            <SelectTrigger>
+            <SelectTrigger className="h-9 text-xs bg-[var(--color-surface-sunken)] border-[var(--color-border)]">
               <SelectValue placeholder="Gender" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-[var(--color-surface)] border-[var(--color-border)] text-xs text-[var(--text-primary)]">
               <SelectItem value="all">All Hostels</SelectItem>
               <SelectItem value="boys">Boys Hostel</SelectItem>
               <SelectItem value="girls">Girls Hostel</SelectItem>
@@ -100,13 +120,13 @@ export function StudentsFilterBar({
               setPage(1);
             }}
           >
-            <SelectTrigger>
+            <SelectTrigger className="h-9 text-xs bg-[var(--color-surface-sunken)] border-[var(--color-border)]">
               <SelectValue placeholder="Program" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-[var(--color-surface)] border-[var(--color-border)] text-xs text-[var(--text-primary)]">
               <SelectItem value="all">All Programs</SelectItem>
-              <SelectItem value="UG">UG (Undergraduate)</SelectItem>
-              <SelectItem value="PG">PG (Postgraduate)</SelectItem>
+              <SelectItem value="UG">UG (Undergrad)</SelectItem>
+              <SelectItem value="PG">PG (Postgrad)</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -120,11 +140,10 @@ export function StudentsFilterBar({
               setPage(1);
             }}
           >
-            <SelectTrigger>
-              <Filter className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
+            <SelectTrigger className="h-9 text-xs bg-[var(--color-surface-sunken)] border-[var(--color-border)]">
               <SelectValue placeholder="Department" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-[var(--color-surface)] border-[var(--color-border)] text-xs text-[var(--text-primary)]">
               <SelectItem value="all">All Departments</SelectItem>
               {departments.map((d) => (
                 <SelectItem key={d._id} value={d._id}>
@@ -144,11 +163,10 @@ export function StudentsFilterBar({
               setPage(1);
             }}
           >
-            <SelectTrigger>
-              <Calendar className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
-              <SelectValue placeholder="Academic Year" />
+            <SelectTrigger className="h-9 text-xs bg-[var(--color-surface-sunken)] border-[var(--color-border)]">
+              <SelectValue placeholder="Batch" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-[var(--color-surface)] border-[var(--color-border)] text-xs text-[var(--text-primary)]">
               <SelectItem value="all">All Batches</SelectItem>
               {academicYears.map((y) => (
                 <SelectItem key={y._id} value={y._id}>
@@ -168,12 +186,12 @@ export function StudentsFilterBar({
               setPage(1);
             }}
           >
-            <SelectTrigger>
-              <SelectValue placeholder="Dues Status" />
+            <SelectTrigger className="h-9 text-xs bg-[var(--color-surface-sunken)] border-[var(--color-border)]">
+              <SelectValue placeholder="Dues" />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Dues Status</SelectItem>
-              <SelectItem value="with_dues">With Pending Dues</SelectItem>
+            <SelectContent className="bg-[var(--color-surface)] border-[var(--color-border)] text-xs text-[var(--text-primary)]">
+              <SelectItem value="all">All Dues</SelectItem>
+              <SelectItem value="with_dues">With Dues</SelectItem>
               <SelectItem value="no_dues">No Dues (Paid)</SelectItem>
             </SelectContent>
           </Select>
@@ -188,27 +206,71 @@ export function StudentsFilterBar({
               setPage(1);
             }}
           >
-            <SelectTrigger className="flex-1">
-              <SelectValue placeholder="Sort By" />
+            <SelectTrigger className="h-9 text-xs flex-1 bg-[var(--color-surface-sunken)] border-[var(--color-border)]">
+              <SelectValue placeholder="Sort" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-[var(--color-surface)] border-[var(--color-border)] text-xs text-[var(--text-primary)]">
               <SelectItem value="fullName">Full Name</SelectItem>
-              <SelectItem value="registrationNumber">Reg Number</SelectItem>
-              <SelectItem value="department">Department</SelectItem>
-              <SelectItem value="academicYear">Academic Batch</SelectItem>
-              <SelectItem value="dues">Dues Amount</SelectItem>
+              <SelectItem value="registrationNumber">Reg No</SelectItem>
+              <SelectItem value="dues">Dues</SelectItem>
             </SelectContent>
           </Select>
           <Button
             variant="outline"
             size="icon"
             onClick={toggleSortOrder}
-            title={`Sort Order: ${sortOrder.toUpperCase()}`}
+            title={`Sort: ${sortOrder.toUpperCase()}`}
+            className="h-9 w-9 shrink-0"
           >
-            <ArrowUpDown className="h-4 w-4" />
+            <ArrowUpDown className="h-3.5 w-3.5" />
           </Button>
         </div>
       </div>
-    </Card>
+
+      {/* Active Filter Chips */}
+      {hasActiveFilters && (
+        <div className="flex items-center gap-2 pt-2 border-t border-[var(--color-border)]/50 flex-wrap text-xs">
+          <span className="text-[11px] text-[var(--text-muted)] font-medium">Active filters:</span>
+          {q.trim() && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--color-surface-muted)] border border-[var(--color-border)] text-xs text-[var(--text-primary)]">
+              Search: "{q}"
+              <button onClick={() => setQ("")} className="text-[var(--text-muted)] hover:text-[var(--text-primary)]">
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          )}
+          {selectedDept !== "all" && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--color-surface-muted)] border border-[var(--color-border)] text-xs text-[var(--text-primary)]">
+              Dept: {getDeptName(selectedDept)}
+              <button onClick={() => setSelectedDept("all")} className="text-[var(--text-muted)] hover:text-[var(--text-primary)]">
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          )}
+          {selectedYear !== "all" && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--color-surface-muted)] border border-[var(--color-border)] text-xs text-[var(--text-primary)]">
+              Batch: {getYearName(selectedYear)}
+              <button onClick={() => setSelectedYear("all")} className="text-[var(--text-muted)] hover:text-[var(--text-primary)]">
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          )}
+          {duesFilter !== "all" && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--color-surface-muted)] border border-[var(--color-border)] text-xs text-[var(--text-primary)]">
+              Dues: {duesFilter === "with_dues" ? "Pending Dues" : "No Dues"}
+              <button onClick={() => setDuesFilter("all")} className="text-[var(--text-muted)] hover:text-[var(--text-primary)]">
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          )}
+          <button
+            onClick={clearAllFilters}
+            className="text-[11px] text-[var(--tenant-primary)] hover:underline ml-auto font-medium cursor-pointer"
+          >
+            Clear all
+          </button>
+        </div>
+      )}
+    </div>
   );
 }

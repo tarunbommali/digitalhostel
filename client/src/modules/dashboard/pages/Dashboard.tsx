@@ -10,6 +10,7 @@ import { ChangePasswordCard } from "../components/ChangePasswordCard";
 import { Skeleton } from "@/core/components/ui/skeleton";
 
 import { StudentOutingStatusCard } from "../components/StudentOutingStatusCard";
+import { Breadcrumbs } from "@/core/components/ui/Breadcrumbs";
 import GuardScannerPage from "@/modules/guard/pages/GuardScanner";
 
 function StudentDashboard() {
@@ -42,13 +43,16 @@ function StudentDashboard() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">
-          Welcome back, {s?.fullName || "Student"}
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Student Portal · Digital Pass & Account Overview
-        </p>
+      <div className="space-y-3 pb-4 border-b border-[var(--color-border)]">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Welcome back, {s?.fullName || "Student"}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Student Portal · Digital Pass & Account Overview
+          </p>
+        </div>
+        <Breadcrumbs />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">

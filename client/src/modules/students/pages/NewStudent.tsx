@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Card } from "@/core/components/ui/card";
+import { Input } from "@/core/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PhoneInput } from "@/core/components/ui/phone-input";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/core/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -19,9 +19,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
+} from "@/core/components/ui/dialog";
 import { toast } from "sonner";
 import { Loader2, Plus, UserPlus } from "lucide-react";
+import { Breadcrumbs } from "@/core/components/ui/Breadcrumbs";
 
 export function NewStudent() {
   const navigate = useNavigate();
@@ -137,7 +138,7 @@ export function NewStudent() {
 
   return (
     <div className="max-w-2xl space-y-6">
-      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+      <div className="space-y-3 pb-4 border-b border-[var(--color-border)]">
         <div>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
             <UserPlus className="h-6 w-6 text-primary" /> New Student Registration
@@ -146,6 +147,7 @@ export function NewStudent() {
             A unique 6-digit Hostel UID will be generated automatically.
           </p>
         </div>
+        <Breadcrumbs />
       </div>
 
       <Card className="p-6">

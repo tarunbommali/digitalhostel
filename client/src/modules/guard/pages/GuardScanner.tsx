@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { LiveCameraScanner } from "@/modules/attendance/components/LiveCameraScanner";
 import { useCameraScanner } from "@/modules/attendance/hooks/useCameraScanner";
+import { Breadcrumbs } from "@/core/components/ui/Breadcrumbs";
 
 export function GuardScannerPage() {
   const [searchInput, setSearchInput] = useState("");
@@ -129,13 +130,16 @@ export function GuardScannerPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">
-          🛡️ Digital ID Gate Scanner & Outing Logbook
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Scan student Digital ID cards, check active leave passes, and log entry & exit movement at the hostel gate.
-        </p>
+      <div className="space-y-3 pb-4 border-b border-[var(--color-border)]">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Digital ID Gate Scanner & Outing Logbook
+          </h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Scan student Digital ID cards, check active leave passes, and log entry & exit movement at the hostel gate.
+          </p>
+        </div>
+        <Breadcrumbs />
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
@@ -267,8 +271,8 @@ export function GuardScannerPage() {
                 <div className="grid grid-cols-2 gap-2 pt-1">
                   <Button
                     onClick={() => handleRecordMovement("out")}
-                    variant={isOut ? "outline" : "default"}
-                    className="w-full bg-amber-600 hover:bg-amber-700 text-white gap-1"
+                    variant="destructive"
+                    className="w-full bg-[var(--color-warning)] hover:bg-amber-600 text-slate-950 font-semibold gap-1.5 h-10"
                     disabled={recording}
                   >
                     {recording ? (
@@ -276,13 +280,13 @@ export function GuardScannerPage() {
                     ) : (
                       <LogOut className="h-4 w-4" />
                     )}
-                    Mark OUT
+                    SCAN OUT (Exit)
                   </Button>
 
                   <Button
                     onClick={() => handleRecordMovement("in")}
-                    variant={!isOut ? "outline" : "default"}
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white gap-1"
+                    variant="primary"
+                    className="w-full bg-[var(--color-success)] hover:bg-emerald-600 text-white font-semibold gap-1.5 h-10"
                     disabled={recording}
                   >
                     {recording ? (
@@ -290,7 +294,7 @@ export function GuardScannerPage() {
                     ) : (
                       <LogIn className="h-4 w-4" />
                     )}
-                    Mark IN
+                    SCAN IN (Entry)
                   </Button>
                 </div>
               </div>

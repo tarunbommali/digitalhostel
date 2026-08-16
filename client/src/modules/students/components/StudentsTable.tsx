@@ -1,15 +1,8 @@
+import * as React from "react";
+import { Pencil, UserCheck, UserX, RefreshCw, Eye } from "lucide-react";
 import { Button } from "@/core/components/ui/button";
 import { Badge } from "@/core/components/ui/badge";
 import { Skeleton } from "@/core/components/ui/skeleton";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/core/components/ui/table";
-import { Pencil, UserCheck, UserX, RefreshCw } from "lucide-react";
 
 interface StudentsTableProps {
   loading: boolean;
@@ -28,147 +21,172 @@ export function StudentsTable({
   toggleStatus,
   renewPass,
 }: StudentsTableProps) {
+  if (loading) {
+    return (
+      <div className="p-4 space-y-3">
+        {Array.from({ length: 6 }).map((_, idx) => (
+          <div key={idx} className="flex items-center justify-between py-2 border-b border-[var(--color-border)]">
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-4 w-36" />
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-6 w-16 rounded-full" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (students.length === 0) {
+    return (
+      <div className="py-12 text-center text-sm text-[var(--text-muted)]">
+        No matching student records found.
+      </div>
+    );
+  }
+
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead className="w-[100px]">UID</TableHead>
-          <TableHead>Student Name & Email</TableHead>
-          <TableHead>Reg Number</TableHead>
-          <TableHead>Department</TableHead>
-          <TableHead>Academic Batch</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Pending Dues</TableHead>
-          {role === "admin" && (
-            <TableHead className="text-right">Actions</TableHead>
-          )}
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {loading &&
-          Array.from({ length: 6 }).map((_, idx) => (
-            <TableRow key={idx} className="animate-pulse">
-              <TableCell>
-                <Skeleton className="h-5 w-16" />
-              </TableCell>
-              <TableCell>
-                <div className="space-y-1">
-                  <Skeleton className="h-4 w-32" />
-                  <Skeleton className="h-3 w-24" />
-                </div>
-              </TableCell>
-              <TableCell>
-                <Skeleton className="h-4 w-24" />
-              </TableCell>
-              <TableCell>
-                <Skeleton className="h-4 w-28" />
-              </TableCell>
-              <TableCell>
-                <Skeleton className="h-4 w-20" />
-              </TableCell>
-              <TableCell>
-                <Skeleton className="h-5 w-16 rounded-full" />
-              </TableCell>
-              <TableCell>
-                <Skeleton className="h-5 w-20 rounded-full" />
-              </TableCell>
-              {role === "admin" && (
-                <TableCell className="text-right">
-                  <Skeleton className="h-8 w-8 rounded-md ml-auto" />
-                </TableCell>
-              )}
-            </TableRow>
-          ))}
-        {!loading && students.length === 0 && (
-          <TableRow>
-            <TableCell
-              colSpan={role === "admin" ? 8 : 7}
-              className="text-center text-sm text-muted-foreground py-8"
-            >
-              No matching student records found.
-            </TableCell>
-          </TableRow>
-        )}
+    <>
+      {/* Desktop & Tablet Table View */}
+      <div className="hidden md:block overflow-x-auto">
+        <table className="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr className="border-b border-[var(--color-border)] text-[var(--text-muted)] font-caption uppercase text-[10px] bg-[var(--color-surface-sunken)]/50">
+              <th className="py-3 px-4">UID</th>
+              <th className="py-3 px-4">Student & Email</th>
+              <th className="py-3 px-4">Reg Number</th>
+              <th className="py-3 px-4">Department</th>
+              <th className="py-3 px-4">Academic Batch</th>
+              <th className="py-3 px-4">Status</th>
+              <th className="py-3 px-4">Dues Balance</th>
+              {role === "admin" && <th className="py-3 px-4 text-right">Actions</th>}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-[var(--color-border)]">
+            {students.map((s: any) => {
+              const isActive = s.user ? s.user.isActive !== false : s.status !== "inactive";
+              const hasDues = (s.dues || 0) > 0;
+
+              return (
+                <tr key={s._id} className="hover:bg-[var(--color-surface-muted)]/50 transition-colors">
+                  <td className="py-3 px-4 font-mono font-semibold text-[var(--tenant-primary)]">
+                    {s.hostelUid}
+                  </td>
+                  <td className="py-3 px-4">
+                    <div>
+                      <p className="font-body-medium text-xs text-[var(--text-primary)] leading-tight">{s.fullName}</p>
+                      <p className="text-[11px] text-[var(--text-muted)] mt-0.5">{s.email}</p>
+                    </div>
+                  </td>
+                  <td className="py-3 px-4 font-mono text-[var(--text-secondary)]">{s.registrationNumber || "—"}</td>
+                  <td className="py-3 px-4 text-[var(--text-secondary)]">{s.department?.name ?? "—"}</td>
+                  <td className="py-3 px-4 text-[var(--text-secondary)]">{s.academicYear?.name ?? "—"}</td>
+                  <td className="py-3 px-4">
+                    <Badge variant={isActive ? "success" : "danger"} size="sm" dot>
+                      {isActive ? "Active" : "Disabled"}
+                    </Badge>
+                  </td>
+                  <td className="py-3 px-4">
+                    <Badge variant={hasDues ? "danger" : "neutral"} size="sm">
+                      {hasDues ? `₹${s.dues.toLocaleString("en-IN")} Due` : "₹0 Settled"}
+                    </Badge>
+                  </td>
+                  {role === "admin" && (
+                    <td className="py-3 px-4 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        {renewPass && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => renewPass(s._id, s.fullName)}
+                            title="Renew Digital QR Pass"
+                            className="h-7 w-7 p-0 text-[var(--tenant-primary)]"
+                          >
+                            <RefreshCw className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => openEditModal(s)}
+                          title="Edit Student Profile"
+                          className="h-7 w-7 p-0 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => toggleStatus(s._id, isActive)}
+                          title={isActive ? "Disable Account" : "Enable Account"}
+                          className={`h-7 w-7 p-0 ${isActive ? "text-[var(--color-danger)]" : "text-[var(--color-success)]"}`}
+                        >
+                          {isActive ? <UserX className="h-3.5 w-3.5" /> : <UserCheck className="h-3.5 w-3.5" />}
+                        </Button>
+                      </div>
+                    </td>
+                  )}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Mobile Card View (<768px) */}
+      <div className="md:hidden divide-y divide-[var(--color-border)]">
         {students.map((s: any) => {
-          const isActive = s.user
-            ? s.user.isActive !== false
-            : s.status !== "inactive";
+          const isActive = s.user ? s.user.isActive !== false : s.status !== "inactive";
           const hasDues = (s.dues || 0) > 0;
 
           return (
-            <TableRow key={s._id}>
-              <TableCell className="font-mono font-semibold">
-                {s.hostelUid}
-              </TableCell>
-              <TableCell>
+            <div key={s._id} className="p-4 space-y-2.5">
+              <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium leading-tight">{s.fullName}</p>
-                  <p className="text-xs text-muted-foreground">{s.email}</p>
+                  <p className="font-body-medium text-sm text-[var(--text-primary)]">{s.fullName}</p>
+                  <p className="font-mono text-xs text-[var(--tenant-primary)]">UID: {s.hostelUid}</p>
                 </div>
-              </TableCell>
-              <TableCell className="font-mono text-xs">
-                {s.registrationNumber}
-              </TableCell>
-              <TableCell>{s.department?.name ?? "—"}</TableCell>
-              <TableCell>{s.academicYear?.name ?? "—"}</TableCell>
-              <TableCell>
-                <Badge
-                  variant={
-                    s.status === "graduated"
-                      ? "outline"
-                      : isActive
-                      ? "default"
-                      : "secondary"
-                  }
-                  className="capitalize"
-                >
-                  {s.status === "graduated"
-                    ? "Graduated"
-                    : isActive
-                    ? "Active"
-                    : "Disabled"}
+                <Badge variant={isActive ? "success" : "danger"} size="sm" dot>
+                  {isActive ? "Active" : "Disabled"}
                 </Badge>
-              </TableCell>
-              <TableCell>
-                <Badge
-                  variant={hasDues ? "destructive" : "secondary"}
-                  className="font-medium"
-                >
-                  {hasDues
-                    ? `₹ ${s.dues.toLocaleString("en-IN")} Dues`
-                    : "₹ 0 Paid"}
-                </Badge>
-              </TableCell>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 text-xs text-[var(--text-secondary)]">
+                <div>
+                  <span className="text-[var(--text-muted)]">Reg: </span>
+                  <span className="font-mono text-[var(--text-primary)]">{s.registrationNumber || "—"}</span>
+                </div>
+                <div>
+                  <span className="text-[var(--text-muted)]">Dept: </span>
+                  <span>{s.department?.name || "—"}</span>
+                </div>
+                <div>
+                  <span className="text-[var(--text-muted)]">Balance: </span>
+                  <span className={hasDues ? "text-[var(--color-danger)] font-medium" : "text-[var(--color-success)]"}>
+                    {hasDues ? `₹${s.dues.toLocaleString("en-IN")}` : "Paid"}
+                  </span>
+                </div>
+              </div>
+
               {role === "admin" && (
-                <TableCell className="text-right">
-                  <div className="flex items-center justify-end gap-1">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => openEditModal(s)}
-                      title="Edit Student Profile"
-                    >
-                      <Pencil className="h-4 w-4 text-primary" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => toggleStatus(s._id, isActive)}
-                      title={isActive ? "Disable Account" : "Enable Account"}
-                    >
-                      {isActive ? (
-                        <UserX className="h-4 w-4 text-destructive" />
-                      ) : (
-                        <UserCheck className="h-4 w-4 text-emerald-600" />
-                      )}
-                    </Button>
-                  </div>
-                </TableCell>
+                <div className="flex items-center justify-end gap-2 pt-2 border-t border-[var(--color-border)]/50">
+                  <Button size="sm" variant="outline" onClick={() => openEditModal(s)} className="text-xs h-7">
+                    <Pencil className="h-3 w-3 mr-1" /> Edit
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={isActive ? "destructive" : "secondary"}
+                    onClick={() => toggleStatus(s._id, isActive)}
+                    className="text-xs h-7"
+                  >
+                    {isActive ? "Disable" : "Enable"}
+                  </Button>
+                </div>
               )}
-            </TableRow>
+            </div>
           );
         })}
-      </TableBody>
-    </Table>
+      </div>
+    </>
   );
 }

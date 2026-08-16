@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/core/context/auth-context";
-import { Button } from "@/core/components/ui/button";
+import { AuthLayout } from "@/core/components/layout/AuthLayout";
+import { FormField } from "@/core/components/ui/FormField";
+import { PasswordInput } from "@/core/components/ui/PasswordInput";
+import { SubmitButton } from "@/core/components/ui/SubmitButton";
 import { Input } from "@/core/components/ui/input";
-import { Label } from "@/core/components/ui/label";
-import { Lock, Mail, ShieldAlert, Loader2, ShieldCheck, ArrowLeft } from "lucide-react";
+import { getErrorMessage } from "@/utils/errorUtils";
 import { toast } from "sonner";
 
 export default function SuperAdminLoginPage() {
@@ -12,28 +14,22 @@ export default function SuperAdminLoginPage() {
   const { user, role, signIn, isInOrganizationContext, clearOrganizationContext } = useAuth();
   const [email, setEmail] = useState("superadmin@insidehome.com");
   const [password, setPassword] = useState("SuperAdmin@123");
-  const [submitting, setSubmitting] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     // If already logged in as super_admin, redirect to super admin dashboard
     if (user && role === "super_admin") {
-      navigate("/super-admin");
+      navigate("/super-admin", { replace: true });
       return;
     }
 
-    // If logged in under an organization context, clear context for super admin login
-    if (isInOrganizationContext()) {
-      clearOrganizationContext();
-      toast.info("Switching to Super Admin context");
-    }
-
-    // If authenticated but not super_admin, redirect away
+    // If authenticated as a tenant user, redirect to their tenant dashboard
     if (user && role !== "super_admin") {
-      toast.error("You are not authorized to access Super Admin portal");
-      navigate("/");
+      const slug = user.organizationSlug || localStorage.getItem("tenant_slug") || "developer";
+      navigate(`/organization/${slug}/dashboard`, { replace: true });
     }
-  }, [user, role, navigate, isInOrganizationContext, clearOrganizationContext]);
+  }, [user, role, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,113 +38,85 @@ export default function SuperAdminLoginPage() {
       return;
     }
 
-    setSubmitting(true);
+    setBusy(true);
     setErrorMsg(null);
 
-    // Clear any existing organization context
-    clearOrganizationContext();
+    try {
+      // Clear any existing organization context
+      clearOrganizationContext();
 
-    const result = await signIn(email, password);
-    setSubmitting(false);
-
-    if (result.error) {
-      setErrorMsg(result.error);
-      toast.error(result.error);
-    } else if (result.user) {
-      toast.success("Super Admin Authenticated");
-      navigate("/super-admin");
+      const result = await signIn(email, password);
+      if (result.error) {
+        setErrorMsg(result.error);
+        toast.error(result.error);
+      } else if (result.user) {
+        toast.success("Super Admin Authenticated");
+        navigate("/super-admin");
+      }
+    } catch (err: any) {
+      const msg = getErrorMessage(err, "Super Admin authentication failed");
+      setErrorMsg(msg);
+      toast.error(msg);
+    } finally {
+      setBusy(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0A12] text-white flex flex-col justify-between font-sans relative overflow-hidden">
-      {/* Header */}
-      <header className="h-[72px] border-b border-[#2A2A3D] bg-[#12121C]">
-        <div className="max-w-[1280px] mx-auto px-6 md:px-8 h-full flex items-center justify-between">
-          <Button
-            variant="ghost"
-            onClick={() => navigate("/")}
-            className="text-[#A1A1B5] hover:text-white hover:bg-white/5 gap-2 rounded-xl"
+    <AuthLayout variant="platform">
+      <div className="text-center mb-6">
+        <h1 className="font-display text-xl font-bold text-[var(--text-primary)]">
+          Super Admin Login
+        </h1>
+        <p className="font-small text-xs text-[var(--text-muted)] mt-1">
+          Platform core administration & organization control
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <FormField
+          id="email"
+          label="Super Admin Email"
+          required
+          error={errorMsg && !password ? errorMsg : null}
+        >
+          <Input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            autoComplete="email"
+            placeholder="admin@campusstay.com"
+            className="bg-[var(--color-surface-sunken)] border-[var(--color-border)] text-[var(--text-primary)] text-xs rounded-md h-9"
+          />
+        </FormField>
+
+        <FormField
+          id="password"
+          label="Password"
+          required
+          error={errorMsg}
+        >
+          <PasswordInput
+            id="password"
+            value={password}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+            required
+            autoComplete="current-password"
+            placeholder="••••••••"
+          />
+        </FormField>
+
+        <div className="pt-2">
+          <SubmitButton
+            loading={busy}
+            className="w-full font-semibold shadow-xs"
           >
-            <ArrowLeft className="w-4 h-4" /> Landing Page
-          </Button>
-
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-[#6366F1] flex items-center justify-center">
-              <ShieldCheck className="w-4 h-4 text-white" />
-            </div>
-            <span className="font-bold text-white text-sm">Inside Home Platform</span>
-          </div>
+            Access Control Console
+          </SubmitButton>
         </div>
-      </header>
-
-      {/* Main Login Card */}
-      <main className="flex-1 flex items-center justify-center p-6 z-10">
-        <div className="w-full max-w-md bg-[#14141F] border border-[#2A2A3D] rounded-2xl p-8 shadow-2xl relative">
-          <div className="text-center mb-8">
-            <div className="w-14 h-14 rounded-2xl bg-[#6366F1] mx-auto mb-4 flex items-center justify-center text-white shadow-lg">
-              <Lock className="w-7 h-7" />
-            </div>
-            <h2 className="text-2xl font-bold text-white">Super Admin Login</h2>
-            <p className="text-xs text-[#A1A1B5] mt-1">Platform Core Control & Organization Management</p>
-          </div>
-
-          {errorMsg && (
-            <div className="mb-6 p-4 rounded-xl bg-[#EF4444]/10 border border-[#EF4444]/30 text-[#EF4444] text-xs flex items-center gap-2">
-              <ShieldAlert className="w-4 h-4 shrink-0" />
-              <span>{errorMsg}</span>
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-2">
-              <Label className="text-xs font-semibold uppercase tracking-[0.05em] text-[#6B6B7D]">
-                Super Admin Email
-              </Label>
-              <div className="relative">
-                <Mail className="w-4 h-4 text-[#6B6B7D] absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <Input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="pl-10 bg-black/30 border-white/10 text-white placeholder:text-[#6B6B7D] focus:ring-2 focus:ring-[#6366F1] rounded-xl text-sm"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-xs font-semibold uppercase tracking-[0.05em] text-[#6B6B7D]">
-                Password
-              </Label>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-[#6B6B7D] absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <Input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="pl-10 bg-black/30 border-white/10 text-white placeholder:text-[#6B6B7D] focus:ring-2 focus:ring-[#6366F1] rounded-xl text-sm"
-                />
-              </div>
-            </div>
-
-            <Button
-              type="submit"
-              disabled={submitting}
-              className="w-full h-11 bg-[#6366F1] hover:bg-[#4F46E5] text-white font-medium rounded-xl transition-colors shadow-lg"
-            >
-              {submitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Authenticating...
-                </>
-              ) : (
-                "Access Control Console"
-              )}
-            </Button>
-          </form>
-        </div>
-      </main>
-    </div>
+      </form>
+    </AuthLayout>
   );
 }

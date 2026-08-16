@@ -1,6 +1,5 @@
-import { Card } from "@/core/components/ui/card";
-import { Badge } from "@/core/components/ui/badge";
-import { Skeleton } from "@/core/components/ui/skeleton";
+import * as React from "react";
+import { Filter, DoorOpen, Bed, User } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -8,15 +7,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/core/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/core/components/ui/table";
-import { Filter } from "lucide-react";
+import { Badge } from "@/core/components/ui/badge";
+import { Skeleton } from "@/core/components/ui/skeleton";
 
 interface RoomsGridTableProps {
   loading: boolean;
@@ -40,22 +32,21 @@ export function RoomsGridTable({
   });
 
   return (
-    <Card className="p-6 space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b pb-3">
-        <div className="flex items-center gap-2 font-semibold text-base">
-          <span>Rooms & Bed Allocations ({filteredRooms.length})</span>
+    <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm space-y-5">
+      {/* Header & Filter */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[var(--color-border)] pb-4">
+        <div>
+          <h3 className="font-h3 text-[var(--text-primary)]">Rooms & Bed Visualizer ({filteredRooms.length})</h3>
+          <p className="font-small text-[var(--text-muted)]">Real-time room occupancy and student allocation slots</p>
         </div>
 
         <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-muted-foreground" />
-          <Select
-            value={blockGenderFilter}
-            onValueChange={setBlockGenderFilter}
-          >
-            <SelectTrigger className="w-[180px] h-9 text-xs font-medium">
-              <SelectValue placeholder="Filter Block Gender" />
+          <Filter className="h-4 w-4 text-[var(--text-muted)]" />
+          <Select value={blockGenderFilter} onValueChange={setBlockGenderFilter}>
+            <SelectTrigger className="w-[180px] h-8 text-xs bg-[var(--color-surface-sunken)] border-[var(--color-border)]">
+              <SelectValue placeholder="Hostel Gender" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-[var(--color-surface)] border-[var(--color-border)] text-xs text-[var(--text-primary)]">
               <SelectItem value="all">All Hostel Blocks</SelectItem>
               <SelectItem value="boys">Boys Hostels Only</SelectItem>
               <SelectItem value="girls">Girls Hostels Only</SelectItem>
@@ -65,100 +56,109 @@ export function RoomsGridTable({
         </div>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Hostel Block</TableHead>
-            <TableHead>Room</TableHead>
-            <TableHead>Occupancy</TableHead>
-            <TableHead>Current Beds & Allocated Students</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {loading &&
-            Array.from({ length: 4 }).map((_, idx) => (
-              <TableRow key={idx}>
-                <TableCell>
-                  <Skeleton className="h-4 w-24" />
-                </TableCell>
-                <TableCell>
-                  <Skeleton className="h-4 w-16" />
-                </TableCell>
-                <TableCell>
-                  <Skeleton className="h-4 w-20" />
-                </TableCell>
-                <TableCell>
-                  <Skeleton className="h-4 w-48" />
-                </TableCell>
-              </TableRow>
-            ))}
-          {!loading && filteredRooms.length === 0 && (
-            <TableRow>
-              <TableCell
-                colSpan={4}
-                className="text-center text-sm text-muted-foreground py-8"
-              >
-                No rooms match the selected Hostel Block gender filter.
-              </TableCell>
-            </TableRow>
-          )}
-          {filteredRooms.map((r) => {
-            const matchedBlock = blocks.find((b) => b.name === r.hostelBlock);
-            return (
-              <TableRow key={r.id}>
-                <TableCell className="font-medium">
+      {loading && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Array.from({ length: 6 }).map((_, idx) => (
+            <div key={idx} className="p-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-sunken)]/50 space-y-3">
+              <Skeleton className="h-5 w-28" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-16 w-full rounded-md" />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {!loading && filteredRooms.length === 0 && (
+        <div className="py-12 text-center text-sm text-[var(--text-muted)]">
+          No rooms match the selected hostel block filter.
+        </div>
+      )}
+
+      {/* Room Grid Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filteredRooms.map((r) => {
+          const matchedBlock = blocks.find((b) => b.name === r.hostelBlock);
+          const capacity = r.capacity || 3;
+          const occupancy = r.occupancy || 0;
+          const available = Math.max(0, capacity - occupancy);
+          const percent = Math.round((occupancy / capacity) * 100);
+
+          return (
+            <div
+              key={r.id}
+              className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-sunken)]/40 p-4 hover:border-[var(--color-border-strong)] transition-all flex flex-col justify-between"
+            >
+              <div>
+                {/* Card Title & Block Badge */}
+                <div className="flex items-center justify-between gap-2 mb-2">
                   <div className="flex items-center gap-2">
-                    <span>{r.hostelBlock}</span>
-                    {matchedBlock?.gender && (
-                      <Badge
-                        variant={
-                          matchedBlock.gender === "boys"
-                            ? "default"
-                            : matchedBlock.gender === "girls"
-                            ? "secondary"
-                            : "outline"
-                        }
-                        className="text-[10px] capitalize px-1.5 py-0"
-                      >
-                        {matchedBlock.gender}
-                      </Badge>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell className="font-mono">
-                  Room {r.roomNumber}
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline">
-                    {r.occupancy} / {r.capacity} Occupied
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  {r.beds && r.beds.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {r.beds.map((b: any, idx: number) => (
-                        <span
-                          key={idx}
-                          className="inline-flex items-center gap-1.5 text-xs bg-muted/40 border px-2.5 py-1 rounded-md"
-                        >
-                          <b className="font-mono text-primary">
-                            Bed {b.bedNumber}:
-                          </b>{" "}
-                          {b.studentName} ({b.studentReg})
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <span className="text-xs text-muted-foreground italic">
-                      No beds allocated
+                    <DoorOpen className="h-4 w-4 text-[var(--tenant-primary)]" />
+                    <span className="font-body-medium text-sm text-[var(--text-primary)] font-semibold">
+                      Room {r.roomNumber}
                     </span>
-                  )}
-                </TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
-    </Card>
+                  </div>
+                  <Badge variant={matchedBlock?.gender === "girls" ? "brand" : "neutral"} size="sm">
+                    {r.hostelBlock}
+                  </Badge>
+                </div>
+
+                {/* Occupancy Indicator Bar */}
+                <div className="flex items-center justify-between text-xs text-[var(--text-secondary)] mb-1.5">
+                  <span>Capacity: {capacity}</span>
+                  <span>Occupied: {occupancy}</span>
+                  <span className={available > 0 ? "text-[var(--color-success)] font-medium" : "text-[var(--text-muted)]"}>
+                    Available: {available}
+                  </span>
+                </div>
+                <div className="w-full h-1.5 rounded-full bg-[var(--color-surface-muted)] overflow-hidden mb-4">
+                  <div
+                    className={`h-full rounded-full transition-all ${
+                      percent === 100 ? "bg-[var(--color-danger)]" : percent > 50 ? "bg-[var(--tenant-primary)]" : "bg-[var(--color-success)]"
+                    }`}
+                    style={{ width: `${percent}%` }}
+                  />
+                </div>
+
+                {/* Bed Allocation Slots */}
+                <div className="space-y-1.5">
+                  {Array.from({ length: capacity }).map((_, bIdx) => {
+                    const bedNum = bIdx + 1;
+                    const allocated = r.beds?.find((b: any) => b.bedNumber === bedNum);
+
+                    return (
+                      <div
+                        key={bedNum}
+                        className={`p-2 rounded-md text-xs flex items-center justify-between transition-colors ${
+                          allocated
+                            ? "bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--text-primary)]"
+                            : "border border-dashed border-[var(--color-border)] text-[var(--text-muted)] bg-transparent"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 truncate">
+                          <Bed className={`h-3.5 w-3.5 shrink-0 ${allocated ? "text-[var(--tenant-primary)]" : "text-[var(--text-muted)]"}`} />
+                          <span className="font-mono font-semibold text-[11px]">Bed {bedNum}:</span>
+                          {allocated ? (
+                            <span className="truncate text-xs font-medium text-[var(--text-primary)]">
+                              {allocated.studentName}
+                            </span>
+                          ) : (
+                            <span className="text-[11px] italic">FREE / AVAILABLE</span>
+                          )}
+                        </div>
+                        {allocated && (
+                          <span className="font-mono text-[10px] text-[var(--text-muted)] shrink-0 ml-1">
+                            {allocated.studentReg}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }

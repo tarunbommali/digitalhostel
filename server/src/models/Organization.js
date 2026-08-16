@@ -45,9 +45,29 @@ const OrganizationSchema = new mongoose.Schema(
       defaultCurrency: { type: String, default: 'INR' },
       messBillingEnabled: { type: Boolean, default: true },
     },
+    plan: {
+      type: String,
+      enum: ['BASIC', 'PRO', 'ENTERPRISE'],
+      default: 'BASIC',
+      uppercase: true,
+      index: true,
+    },
+    subscriptionStatus: {
+      type: String,
+      enum: ['active', 'trial', 'inactive', 'cancelled'],
+      default: 'active',
+      lowercase: true,
+      index: true,
+    },
+    isPublic: {
+      type: Boolean,
+      default: true,
+      index: true,
+    },
     isActive: {
       type: Boolean,
       default: true,
+      index: true,
     },
   },
   {

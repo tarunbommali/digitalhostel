@@ -5,8 +5,8 @@ import { PanelLeft } from "lucide-react";
 
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Button } from "@/core/components/ui/button";
+import { Input } from "@/core/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import {
   Sheet,
@@ -15,7 +15,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton } from "@/core/components/ui/skeleton";
 import {
   Tooltip,
   TooltipContent,

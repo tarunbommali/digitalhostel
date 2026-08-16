@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { RecordPaymentCard } from "../components/RecordPaymentCard";
 import { AdminPaymentsTable } from "../components/AdminPaymentsTable";
 import { StudentPaymentsView } from "../components/StudentPaymentsView";
+import { Breadcrumbs } from "@/core/components/ui/Breadcrumbs";
 
 function AdminPayments() {
   const [studentSearch, setStudentSearch] = useState("");
@@ -75,7 +76,15 @@ function AdminPayments() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold tracking-tight">Payments & Fee Collections</h1>
+      <div className="space-y-3 pb-4 border-b border-[var(--color-border)]">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Payments & Fee Collections</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Record SBI Collect payments, generate receipts, and track transaction histories
+          </p>
+        </div>
+        <Breadcrumbs />
+      </div>
 
       <RecordPaymentCard
         studentSearch={studentSearch} setStudentSearch={setStudentSearch}

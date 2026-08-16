@@ -1,6 +1,6 @@
-# 🏗️ Inside Home - Naming Conventions & Code Style Guide
+# 🏗️ Campus Stay - Naming Conventions & Code Style Guide
 
-Comprehensive naming standards and project file organization conventions for the Inside Home multi-tenant hostel management codebase.
+Comprehensive naming standards and project file organization conventions for the Campus Stay multi-tenant hostel management codebase.
 
 ---
 

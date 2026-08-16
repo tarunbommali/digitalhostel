@@ -1,109 +1,155 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { api } from "@/lib/api";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
-import { Building2, Loader2, ArrowLeft, MailCheck } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import { api } from "@/core/lib/api";
+import { useTenant } from "@/core/context/tenant-context";
+import { AuthLayout } from "@/core/components/layout/AuthLayout";
+import { FormField } from "@/core/components/ui/FormField";
+import { SubmitButton } from "@/core/components/ui/SubmitButton";
+import { Input } from "@/core/components/ui/input";
+import { getErrorMessage } from "@/utils/errorUtils";
+import { resolveAuthVariant } from "@/utils/authVariant";
+import { MailCheck, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
+import { useAuth } from "@/core/context/auth-context";
+import { useNavigate } from "react-router-dom";
+
 export function ForgotPasswordPage() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const slug = searchParams.get("slug") || "";
+  const { user, role, loading: authLoading } = useAuth();
+  const { fetchTenantBySlug } = useTenant();
+
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const variant = resolveAuthVariant(slug);
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      if (role === "super_admin") {
+        navigate("/super-admin", { replace: true });
+      } else {
+        const targetSlug = slug || user.organizationSlug || localStorage.getItem("tenant_slug") || "developer";
+        navigate(`/organization/${targetSlug}/dashboard`, { replace: true });
+      }
+    }
+  }, [authLoading, user, role, navigate, slug]);
+
+  useEffect(() => {
+    if (slug) {
+      fetchTenantBySlug(slug);
+    }
+  }, [slug, fetchTenantBySlug]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!email) {
+      toast.error("Please enter your account email");
+      return;
+    }
+
     setBusy(true);
+    setErrorMsg(null);
 
     try {
       await api.post<any>("/auth/forgot-password", { email });
       setSent(true);
-      toast.success("Reset link sent — check your inbox");
+      toast.success("Password reset instructions sent — please check your inbox");
     } catch (err: any) {
-      toast.error(err.message || "Failed to request password reset");
+      const msg = getErrorMessage(err, "Failed to request password reset");
+      setErrorMsg(msg);
+      toast.error(msg);
     } finally {
       setBusy(false);
     }
   }
 
+  const backLink = slug ? `/organization/${slug}/login` : "/auth";
+
   return (
-    <div className="grid min-h-screen md:grid-cols-2">
-      <div className="hidden bg-sidebar p-12 text-sidebar-foreground md:flex md:flex-col md:justify-between">
-        <div className="flex items-center gap-3">
-          <div className="grid h-10 w-10 place-items-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
-            <Building2 className="h-5 w-5" />
-          </div>
-          <div>
-            <p className="font-semibold">JNTUGV</p>
-            <p className="text-xs opacity-70">Hostel Management</p>
-          </div>
-        </div>
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">
-            Password recovery
-          </h2>
-          <p className="mt-3 text-sm opacity-80 max-w-sm">
-            Enter your account email and we will send you a secure link to reset
-            your password.
-          </p>
-        </div>
-        <p className="text-xs opacity-50">
-          © {new Date().getFullYear()} JNTUGV
+    <AuthLayout variant={variant}>
+      <div className="text-center mb-6">
+        <h1 className="font-display text-xl font-bold text-[var(--text-primary)]">
+          Forgot Password
+        </h1>
+        <p className="font-small text-xs text-[var(--text-muted)] mt-1">
+          {sent
+            ? "Recovery instructions dispatched"
+            : "Enter your registered email to receive a password reset link"}
         </p>
       </div>
 
-      <div className="flex items-center justify-center p-6">
-        <Card className="w-full max-w-md p-8">
-          <Link
-            to="/auth"
-            className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+      {sent ? (
+        <div className="space-y-5 text-center py-2">
+          <div className="h-12 w-12 rounded-full bg-[var(--color-success-bg)] text-[var(--color-success)] border border-[var(--color-success-border)] grid place-items-center mx-auto">
+            <MailCheck className="w-6 h-6" />
+          </div>
+
+          <div className="space-y-1">
+            <h3 className="font-h3 text-sm font-semibold text-[var(--text-primary)]">
+              Check Your Inbox
+            </h3>
+            <p className="font-small text-xs text-[var(--text-muted)] leading-relaxed">
+              If an account exists for{" "}
+              <strong className="text-[var(--text-primary)]">{email}</strong>, a secure
+              single-use reset link has been sent. The link expires in 15 minutes.
+            </p>
+          </div>
+
+          <div className="pt-2">
+            <Link
+              to={backLink}
+              className="inline-flex items-center justify-center w-full px-4 py-2 text-xs font-semibold rounded-md bg-[var(--color-surface-muted)] text-[var(--text-primary)] hover:bg-[var(--color-border)] border border-[var(--color-border)] transition-colors"
+            >
+              <ArrowLeft className="w-3.5 h-3.5 mr-1.5" /> Return to Sign In
+            </Link>
+          </div>
+        </div>
+      ) : (
+        <form className="space-y-4" onSubmit={onSubmit}>
+          <FormField
+            id="email"
+            label="Registered Account Email"
+            required
+            error={errorMsg}
           >
-            <ArrowLeft className="h-4 w-4" />
-            Back to sign in
-          </Link>
+            <Input
+              id="email"
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+              placeholder="e.g. user@hostel.edu"
+              className="bg-[var(--color-surface-sunken)] border-[var(--color-border)] text-[var(--text-primary)] text-xs rounded-md h-9"
+            />
+          </FormField>
 
-          <h1 className="mt-4 text-2xl font-bold">Forgot password</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {sent
-              ? "We have emailed you a reset link."
-              : "Enter your email to receive a password reset link."}
-          </p>
+          <div className="pt-2 space-y-3">
+            <SubmitButton
+              loading={busy}
+              className="w-full font-semibold shadow-xs"
+            >
+              Send Password Reset Link
+            </SubmitButton>
 
-          {sent ? (
-            <div className="mt-6 flex flex-col items-center gap-3 rounded-md border bg-muted/40 p-6 text-center">
-              <MailCheck className="h-8 w-8 text-accent" />
-              <p className="text-sm font-medium">Check your inbox</p>
-              <p className="text-xs text-muted-foreground">
-                If an account exists for{" "}
-                <span className="font-medium text-foreground">{email}</span>,
-                you will receive a reset link shortly.
-              </p>
+            <div className="text-center">
+              <Link
+                to={backLink}
+                className="inline-flex items-center gap-1.5 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+              >
+                <ArrowLeft className="w-3 h-3" /> Back to Sign In
+              </Link>
             </div>
-          ) : (
-            <form className="mt-6 space-y-4" onSubmit={onSubmit}>
-              <div>
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  autoComplete="email"
-                  placeholder="you@jntugv.local"
-                />
-              </div>
-              <Button type="submit" className="w-full" disabled={busy}>
-                {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Send
-                reset link
-              </Button>
-            </form>
-          )}
-        </Card>
-      </div>
-    </div>
+          </div>
+        </form>
+      )}
+    </AuthLayout>
   );
 }
+
 export default ForgotPasswordPage;

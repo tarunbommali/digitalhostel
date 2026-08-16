@@ -9,9 +9,11 @@ const { asyncHandler } = require('../utils/responseHelper');
 
 router.use(authMiddleware, tenantGuard);
 
+// 1. Aggregated Metadata Lookups
 router.get('/', asyncHandler(lookupController.getLookups));
+
+// 2. Departments
 router.get('/departments', asyncHandler(lookupController.listDepartments));
-router.get('/academic-years', asyncHandler(lookupController.listAcademicYears));
 
 router.post(
   '/departments',
@@ -32,6 +34,9 @@ router.delete(
   validateObjectId('id'),
   asyncHandler(lookupController.deleteDepartment)
 );
+
+// 3. Academic Years
+router.get('/academic-years', asyncHandler(lookupController.listAcademicYears));
 
 router.post(
   '/academic-years',
@@ -58,6 +63,36 @@ router.delete(
   requireRole(['admin']),
   validateObjectId('id'),
   asyncHandler(lookupController.deleteAcademicYear)
+);
+
+// 4. Hostel Blocks
+router.get('/blocks', asyncHandler(lookupController.listBlocks));
+
+router.post(
+  '/blocks',
+  requireRole(['admin']),
+  asyncHandler(lookupController.createBlock)
+);
+
+router.put(
+  '/blocks/:id',
+  requireRole(['admin']),
+  validateObjectId('id'),
+  asyncHandler(lookupController.updateBlock)
+);
+
+router.patch(
+  '/blocks/:id',
+  requireRole(['admin']),
+  validateObjectId('id'),
+  asyncHandler(lookupController.updateBlock)
+);
+
+router.delete(
+  '/blocks/:id',
+  requireRole(['admin']),
+  validateObjectId('id'),
+  asyncHandler(lookupController.deleteBlock)
 );
 
 module.exports = router;

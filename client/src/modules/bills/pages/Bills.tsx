@@ -6,6 +6,7 @@ import { PublishBillForm } from "../components/PublishBillForm";
 import { AdminBillsTable } from "../components/AdminBillsTable";
 import { StudentBillsView } from "../components/StudentBillsView";
 import { EditBillBatchModal } from "../components/EditBillBatchModal";
+import { Breadcrumbs } from "@/core/components/ui/Breadcrumbs";
 
 function AdminBills() {
   const now = new Date();
@@ -99,11 +100,14 @@ function AdminBills() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Monthly Billing</h1>
-        <p className="text-sm text-muted-foreground">
-          Publish monthly mess fees and manage admin verification releases
-        </p>
+      <div className="space-y-3 pb-4 border-b border-[var(--color-border)]">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Monthly Billing</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Publish monthly mess fees and manage admin verification releases
+          </p>
+        </div>
+        <Breadcrumbs />
       </div>
 
       <PublishBillForm

@@ -5,6 +5,7 @@ import { getErrorMessage } from "@/utils/errorUtils";
 import { AddStaffForm } from "../components/AddStaffForm";
 import { StaffListTable } from "../components/StaffListTable";
 import { EditStaffModal } from "../components/EditStaffModal";
+import { Breadcrumbs } from "@/core/components/ui/Breadcrumbs";
 
 export function ModeratorsPage() {
   const [mods, setMods] = useState<any[]>([]);
@@ -156,11 +157,14 @@ export function ModeratorsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Staff & Moderators</h1>
-        <p className="text-sm text-muted-foreground">
-          Create and manage staff accounts with specific privilege levels (Administration, Warden, Attendance, Security Guard)
-        </p>
+      <div className="space-y-3 pb-4 border-b border-[var(--color-border)]">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Staff & Moderators</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Create and manage staff accounts with specific privilege levels (Administration, Warden, Attendance, Security Guard)
+          </p>
+        </div>
+        <Breadcrumbs />
       </div>
 
       <AddStaffForm
