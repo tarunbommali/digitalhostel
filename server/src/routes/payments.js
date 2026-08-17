@@ -7,7 +7,9 @@ const { tenantGuard } = require('../middleware/tenantGuard');
 const { validateObjectId } = require('../middleware/sanitizer');
 const { asyncHandler } = require('../utils/responseHelper');
 
-router.use(authMiddleware, tenantGuard);
+const { requirePlanFeature } = require('../middleware/planGuard');
+
+router.use(authMiddleware, tenantGuard, requirePlanFeature('onlinePayments'));
 
 // 1. Static Routes
 router.get(

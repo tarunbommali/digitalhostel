@@ -17,7 +17,7 @@ export const FEATURE_SECTIONS: FeatureSection[] = [
   {
     title: "Core",
     features: [
-      { label: "Max students", values: ["150", "1,000", "Unlimited"] },
+      { label: "Max students", values: ["500", "1,000", "Unlimited"] },
       { label: "Max moderator/staff seats", values: ["2", "10", "Unlimited"] },
       { label: "Hostel blocks", values: ["1", "Unlimited", "Unlimited"] },
       { label: "Academic years / departments", values: [true, true, true] },

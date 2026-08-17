@@ -10,7 +10,11 @@ import ErrorBoundary from "@/components/layout/ErrorBoundary";
 
 import LandingPage from "@/modules/landing/pages/LandingPage";
 import SuperAdminLoginPage from "@/modules/auth/pages/SuperAdminLoginPage";
+import SuperAdminLayout from "@/modules/super-admin/components/SuperAdminLayout";
+import SuperAdminOverview from "@/modules/super-admin/pages/SuperAdminOverview";
 import SuperAdminDashboard from "@/modules/super-admin/pages/SuperAdminDashboard";
+import NewOrganization from "@/modules/super-admin/pages/NewOrganization";
+import EditOrganization from "@/modules/super-admin/pages/EditOrganization";
 import { AuthPage } from "@/modules/auth/pages/Auth";
 import { ForgotPasswordPage } from "@/modules/auth/pages/ForgotPassword";
 import { ResetPasswordPage } from "@/modules/auth/pages/ResetPassword";
@@ -51,10 +55,17 @@ const appRouter = createBrowserRouter([
         element: (
           <SuperAdminGuard>
             <ProtectedRoute superAdminOnly>
-              <SuperAdminDashboard />
+              <SuperAdminLayout />
             </ProtectedRoute>
           </SuperAdminGuard>
         ),
+        children: [
+          { index: true, element: <SuperAdminOverview /> },
+          { path: "dashboard", element: <SuperAdminOverview /> },
+          { path: "organizations", element: <SuperAdminDashboard /> },
+          { path: "organizations/new", element: <NewOrganization /> },
+          { path: "organizations/:id/edit", element: <EditOrganization /> },
+        ],
       },
           {
             path: "/organization/:slug",
@@ -87,7 +98,7 @@ const appRouter = createBrowserRouter([
               {
                 path: "students/import",
                 element: (
-                  <ProtectedRoute requireOrganization allowedRoles={["admin", "moderator"]}>
+                  <ProtectedRoute requireOrganization allowedRoles={["admin", "moderator"]} requiredFeature="bulkImport">
                     <ImportStudents />
                   </ProtectedRoute>
                 ),
@@ -135,7 +146,7 @@ const appRouter = createBrowserRouter([
               {
                 path: "bills",
                 element: (
-                  <ProtectedRoute requireOrganization allowedRoles={["admin", "student"]}>
+                  <ProtectedRoute requireOrganization allowedRoles={["admin", "student"]} requiredFeature="monthlyBilling">
                     <BillsPage />
                   </ProtectedRoute>
                 ),
@@ -143,7 +154,7 @@ const appRouter = createBrowserRouter([
               {
                 path: "payments",
                 element: (
-                  <ProtectedRoute requireOrganization allowedRoles={["admin", "student"]}>
+                  <ProtectedRoute requireOrganization allowedRoles={["admin", "student"]} requiredFeature="onlinePayments">
                     <PaymentsPage />
                   </ProtectedRoute>
                 ),
@@ -151,7 +162,7 @@ const appRouter = createBrowserRouter([
               {
                 path: "flags",
                 element: (
-                  <ProtectedRoute requireOrganization>
+                  <ProtectedRoute requireOrganization requiredFeature="incidentReporting">
                     <FlagsPage />
                   </ProtectedRoute>
                 ),

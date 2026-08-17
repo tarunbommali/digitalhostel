@@ -71,7 +71,7 @@ export default function Header({ className }: HeaderProps = {}) {
         {/* =========================================================================
             LEFT SECTION: Brand (Public Only) or Breadcrumbs / Mobile Menu Toggle
            ========================================================================= */}
-        <div className="flex items-center gap-3 px-12">
+        <div className="flex items-center gap-3">
           {/* Public / Landing: Show single top-level Logo */}
           {isPublicPage && (
             <Logo to="/" size="md" />

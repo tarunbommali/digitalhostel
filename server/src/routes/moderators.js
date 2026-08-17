@@ -14,6 +14,7 @@ const {
   ConflictError,
 } = require('../utils/responseHelper');
 const AuditService = require('../services/auditService');
+const { assertPlanQuota } = require('../middleware/planGuard');
 
 router.use(authMiddleware, tenantGuard, requireRole(['admin', 'super_admin']));
 
@@ -72,6 +73,14 @@ router.post(
     if (existing) {
       throw new ConflictError('A staff user with this email already exists in this organization');
     }
+
+    // Plan Quota Check (Basic: 2, Pro: 10, Enterprise: Unlimited)
+    const currentStaffCount = await User.countDocuments({
+      organizationId: req.organizationId,
+      role: { $in: ['moderator', 'admin'] },
+      isActive: true,
+    });
+    await assertPlanQuota(req.organizationId, 'maxModerators', currentStaffCount);
 
     const validTypes = [
       'administration',

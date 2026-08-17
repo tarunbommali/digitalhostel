@@ -48,11 +48,45 @@ export function Breadcrumbs({ items: customItems, className }: BreadcrumbsProps)
 
     // Super Admin Route
     if (isSuperAdmin) {
-      return [
-        { label: "Platform Console", to: "/super-admin", icon: Building2 },
-        { label: "Platform Administration" },
-        { label: "Platform Organizations" },
+      const superAdminCrumbs: BreadcrumbCrumb[] = [
+        { label: "Super Admin", to: "/super-admin/organizations", icon: Building2 },
       ];
+
+      const parts = location.pathname.split("/").filter(Boolean);
+      // parts might be: ['super-admin'], ['super-admin', 'dashboard'], ['super-admin', 'organizations'], ['super-admin', 'organizations', 'new'], ['super-admin', 'organizations', ':id', 'edit']
+      const subParts = parts.slice(1);
+
+      if (subParts.length === 0 || subParts[0] === "dashboard" || subParts[0] === "organizations") {
+        if (subParts.length <= 1) {
+          superAdminCrumbs.push({ label: "Organizations" });
+          return superAdminCrumbs;
+        }
+
+        if (subParts[1] === "new") {
+          superAdminCrumbs.push({ label: "Organizations", to: "/super-admin/organizations" });
+          superAdminCrumbs.push({ label: "Create Organization" });
+          return superAdminCrumbs;
+        }
+
+        if (subParts.length >= 3 && subParts[2] === "edit") {
+          superAdminCrumbs.push({ label: "Organizations", to: "/super-admin/organizations" });
+          superAdminCrumbs.push({ label: "Edit Organization" });
+          return superAdminCrumbs;
+        }
+      }
+
+      if (subParts[0] === "analytics") {
+        superAdminCrumbs.push({ label: "Platform Analytics" });
+        return superAdminCrumbs;
+      }
+
+      if (subParts[0] === "users") {
+        superAdminCrumbs.push({ label: "Global Users" });
+        return superAdminCrumbs;
+      }
+
+      superAdminCrumbs.push({ label: "Organizations" });
+      return superAdminCrumbs;
     }
 
     // Tenant Scoped Routes

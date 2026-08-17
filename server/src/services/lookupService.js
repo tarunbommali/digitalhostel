@@ -7,6 +7,7 @@ const {
   NotFoundError,
   ConflictError,
 } = require('../utils/responseHelper');
+const { assertPlanQuota } = require('../middleware/planGuard');
 
 class LookupService {
   static async getAggregatedLookups(organizationId) {
@@ -138,6 +139,10 @@ class LookupService {
     if (!name) {
       throw new BadRequestError('Block name is required');
     }
+
+    // Plan Quota Check (Basic: 1, Pro: Unlimited, Enterprise: Unlimited)
+    const currentBlockCount = await Block.countDocuments({ organizationId, isActive: true });
+    await assertPlanQuota(organizationId, 'maxBlocks', currentBlockCount);
 
     const existing = await Block.findOne({ organizationId, name: name.trim() });
     if (existing) {

@@ -19,7 +19,8 @@ import {
 } from "@/core/components/ui/dialog";
 import { Label } from "@/core/components/ui/label";
 import { toast } from "sonner";
-import { Building2, Plus, Trash2, Edit } from "lucide-react";
+import { Building2, Plus, Trash2, Edit, Lock } from "lucide-react";
+import { usePlanFeature } from "@/core/hooks/usePlanFeature";
 import { HostelBlockItem, HostelGender } from "../types";
 import { HOSTEL_GENDERS } from "../constants";
 import { lookupService } from "../services/lookup.service";
@@ -56,9 +57,17 @@ export function HostelBlockManager({
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedBlock, setSelectedBlock] = useState<HostelBlockItem | null>(null);
 
+  const { getLimit, currentPlan, isSuperAdmin } = usePlanFeature();
+  const maxBlocks = isSuperAdmin ? Infinity : getLimit("maxBlocks");
+  const isBlockLimitReached = blocks.length >= maxBlocks;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
+    if (isBlockLimitReached) {
+      toast.error(`Block limit reached for ${currentPlan} plan (${maxBlocks} max). Upgrade to Pro for unlimited blocks.`);
+      return;
+    }
     setBusy(true);
     try {
       await lookupService.addBlock(name.trim(), code.trim(), gender);
@@ -115,10 +124,24 @@ export function HostelBlockManager({
 
   return (
     <Card className="p-6">
-      <div className="flex items-center gap-2 font-semibold text-base border-b pb-3 mb-4">
-        <Building2 className="h-5 w-5 text-primary" />
-        <span>Hostel Blocks ({blocks.length})</span>
+      <div className="flex items-center justify-between border-b pb-3 mb-4">
+        <div className="flex items-center gap-2 font-semibold text-base">
+          <Building2 className="h-5 w-5 text-primary" />
+          <span>Hostel Blocks ({blocks.length}{maxBlocks !== Infinity ? `/${maxBlocks}` : ""})</span>
+        </div>
+        {isBlockLimitReached && (
+          <Badge variant="pro" size="sm">
+            <Lock className="w-3 h-3 mr-1" />
+            1 Block Limit (Basic)
+          </Badge>
+        )}
       </div>
+
+      {isBlockLimitReached && (
+        <div className="mb-4 p-2.5 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs flex items-center justify-between">
+          <span>Basic plan allows 1 active block. Upgrade to Pro for unlimited blocks.</span>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="grid gap-3 sm:grid-cols-3 mb-4">
         <Input

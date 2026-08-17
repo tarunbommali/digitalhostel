@@ -13,6 +13,7 @@ const {
 } = require('../utils/responseHelper');
 const { escapeRegex } = require('../utils/regexHelper');
 const AuditService = require('./auditService');
+const { assertPlanQuota } = require('../middleware/planGuard');
 
 class StudentService {
   static assertStudentAccess(studentDoc, actorUser) {
@@ -116,12 +117,9 @@ class StudentService {
       throw new NotFoundError('Tenant organization not found');
     }
 
-    // Quota Enforcement
+    // Plan Quota Enforcement (Basic: 500, Pro: 1000, Enterprise: Unlimited)
     const currentCount = await Student.countDocuments({ organizationId, status: 'active' });
-    const maxStudents = org.settings?.maxStudents || 500;
-    if (currentCount >= maxStudents) {
-      throw new BadRequestError(`Organization student quota reached (${maxStudents} students max)`);
-    }
+    await assertPlanQuota(organizationId, 'maxStudents', currentCount);
 
     const {
       hostelUid,

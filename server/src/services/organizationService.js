@@ -7,6 +7,7 @@ const {
   ForbiddenError,
 } = require('../utils/responseHelper');
 const AuditService = require('./auditService');
+const { isFeatureEnabled } = require('../config/plans');
 
 class OrganizationService {
   /**
@@ -90,6 +91,19 @@ class OrganizationService {
       settings: org.settings,
       isActive: org.isActive,
     };
+  }
+
+  static async getById(id) {
+    if (!id) {
+      throw new BadRequestError('Organization ID is required');
+    }
+
+    const org = await Organization.findById(id).lean();
+    if (!org) {
+      throw new NotFoundError(`Organization with ID '${id}' not found`);
+    }
+
+    return org;
   }
 
   static async listOrganizations(query = {}) {
@@ -201,6 +215,11 @@ class OrganizationService {
     }
 
     if (payload.branding && typeof payload.branding === 'object') {
+      if (actorUser.role !== 'super_admin' && !isFeatureEnabled(org.plan, 'customBranding')) {
+        throw new ForbiddenError(
+          'Custom tenant branding (colors, logos) is not included in the Basic plan. Please upgrade to Pro or Enterprise.'
+        );
+      }
       org.branding = { ...org.branding.toObject(), ...payload.branding };
     }
 

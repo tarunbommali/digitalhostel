@@ -29,8 +29,20 @@ const createOrganization = async (req, res) => {
   return sendSuccess(res, result, 'Tenant organization created successfully', 201);
 };
 
+const getOrganization = async (req, res) => {
+  const org = await OrganizationService.getById(req.params.id);
+  return sendSuccess(res, org, 'Organization retrieved successfully');
+};
+
+const updateOrganization = async (req, res) => {
+  const org = await OrganizationService.updateOrganization(req.params.id, req.body, req.user);
+  return sendSuccess(res, org, 'Organization updated successfully');
+};
+
 module.exports = {
   getSystemStats,
   listOrganizations,
   createOrganization,
+  getOrganization,
+  updateOrganization,
 };

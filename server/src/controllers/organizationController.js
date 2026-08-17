@@ -31,10 +31,16 @@ const updateOrganization = async (req, res) => {
   return sendSuccess(res, org, 'Organization updated successfully');
 };
 
+const getOrganizationById = async (req, res) => {
+  const org = await OrganizationService.getById(req.params.id);
+  return sendSuccess(res, org, 'Organization details retrieved');
+};
+
 module.exports = {
   getPublicOrganizations,
   getPublicLocations,
   getBySlug,
+  getOrganizationById,
   listOrganizations,
   provisionOrganization,
   updateOrganization,

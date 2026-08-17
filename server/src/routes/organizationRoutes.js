@@ -10,24 +10,35 @@ const { asyncHandler } = require('../utils/responseHelper');
 router.get('/public/locations', asyncHandler(organizationController.getPublicLocations));
 router.get('/public', asyncHandler(organizationController.getPublicOrganizations));
 
-// 2. Public Tenant Slug Profile Resolution (Supports both /by-slug/:slug and /:slug)
+// 2. Tenant Slug / ID Profile Resolution
+router.get('/by-id/:id', authMiddleware, validateObjectId('id'), asyncHandler(organizationController.getOrganizationById));
 router.get('/by-slug/:slug', asyncHandler(organizationController.getBySlug));
 router.get('/:slug', asyncHandler(organizationController.getBySlug));
 
-// 3. Admin / SuperAdmin Tenant Settings & Branding Updates
-router.patch(
-  '/:id',
-  authMiddleware,
-  requireRole(['super_admin', 'admin']),
-  validateObjectId('id'),
-  asyncHandler(organizationController.updateOrganization)
-);
+// 3. Admin / SuperAdmin Tenant Settings & Updates (Supports PATCH and PUT)
+router.route('/:id')
+  .get(authMiddleware, validateObjectId('id'), asyncHandler(organizationController.getOrganizationById))
+  .patch(
+    authMiddleware,
+    requireRole(['super_admin', 'admin']),
+    validateObjectId('id'),
+    asyncHandler(organizationController.updateOrganization)
+  )
+  .put(
+    authMiddleware,
+    requireRole(['super_admin', 'admin']),
+    validateObjectId('id'),
+    asyncHandler(organizationController.updateOrganization)
+  );
+
+const { requirePlanFeature } = require('../middleware/planGuard');
 
 router.patch(
   '/:id/branding',
   authMiddleware,
   requireRole(['super_admin', 'admin']),
   validateObjectId('id'),
+  requirePlanFeature('customBranding'),
   asyncHandler(organizationController.updateOrganization)
 );
 

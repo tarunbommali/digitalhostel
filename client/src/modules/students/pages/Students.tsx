@@ -5,8 +5,9 @@ import { useAuth } from "@/core/context/auth-context";
 import { useDebounce } from "@/utils/useDebounce";
 import { Card } from "@/core/components/ui/card";
 import { Button } from "@/core/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Lock } from "lucide-react";
 import { toast } from "sonner";
+import { usePlanFeature } from "@/core/hooks/usePlanFeature";
 
 import { StudentsFilterBar } from "../components/StudentsFilterBar";
 import { StudentsTable } from "../components/StudentsTable";
@@ -16,6 +17,7 @@ import { Breadcrumbs } from "@/core/components/ui/Breadcrumbs";
 
 export function StudentsPage() {
   const { role } = useAuth();
+  const { isAllowed: canBulkImport } = usePlanFeature("bulkImport");
 
   // Filter & Pagination States
   const [q, setQ] = useState("");
@@ -213,7 +215,14 @@ export function StudentsPage() {
           {(role === "admin" || role === "moderator") && (
             <div className="flex gap-2">
               <Button asChild variant="outline">
-                <Link to="import"><Plus className="mr-2 h-4 w-4" /> Import CSV</Link>
+                <Link to="import">
+                  {canBulkImport ? (
+                    <Plus className="mr-2 h-4 w-4" />
+                  ) : (
+                    <Lock className="mr-2 h-3.5 w-3.5 text-amber-500" />
+                  )}
+                  Import CSV {!canBulkImport && "(PRO)"}
+                </Link>
               </Button>
               <Button asChild>
                 <Link to="new"><Plus className="mr-2 h-4 w-4" /> New Student</Link>

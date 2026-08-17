@@ -7,6 +7,8 @@ const { tenantGuard } = require('../middleware/tenantGuard');
 const { validateObjectId } = require('../middleware/sanitizer');
 const { asyncHandler } = require('../utils/responseHelper');
 
+const { requirePlanFeature } = require('../middleware/planGuard');
+
 router.use(authMiddleware, tenantGuard);
 
 // 1. Static Routes (Must precede /:id)
@@ -14,12 +16,14 @@ router.post(
   '/bulk-import',
   requireRole(['admin', 'moderator']),
   requireModeratorCapability(['administration', 'full']),
+  requirePlanFeature('bulkImport'),
   asyncHandler(studentController.bulkImport)
 );
 router.post(
   '/bulk',
   requireRole(['admin', 'moderator']),
   requireModeratorCapability(['administration', 'full']),
+  requirePlanFeature('bulkImport'),
   asyncHandler(studentController.bulkImport)
 );
 

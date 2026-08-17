@@ -5,11 +5,15 @@ import { useTenant } from "@/core/context/tenant-context";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
+import { PlanFeatureKey, isPlanFeatureEnabled } from "@/core/config/plans";
+import { PlanLockedPage } from "./PlanLockedPage";
+
 interface ProtectedRouteProps {
   children: React.ReactNode;
   allowedRoles?: AppRole[];
   requireOrganization?: boolean;
   superAdminOnly?: boolean;
+  requiredFeature?: PlanFeatureKey;
 }
 
 export function ProtectedRoute({
@@ -17,6 +21,7 @@ export function ProtectedRoute({
   allowedRoles,
   requireOrganization = false,
   superAdminOnly = false,
+  requiredFeature,
 }: ProtectedRouteProps) {
   const { user, role, loading, organizationId, signOut } = useAuth();
   const { organization } = useTenant();
@@ -86,11 +91,12 @@ export function ProtectedRoute({
     return <Navigate to="/" replace />;
   }
 
-  // 6. Organization Context Mismatch Check
-  if (slug && organizationId && organization?._id && organization._id !== organizationId && role !== "super_admin") {
-    toast.error("Organization context mismatch. Please log in again.");
-    signOut();
-    return <Navigate to={`/organization/${slug}/login`} replace />;
+  // 7. Plan Feature Gating Check
+  if (requiredFeature && role !== "super_admin") {
+    const currentPlan = organization?.plan;
+    if (!isPlanFeatureEnabled(currentPlan, requiredFeature)) {
+      return <PlanLockedPage featureKey={requiredFeature} />;
+    }
   }
 
   return <>{children}</>;

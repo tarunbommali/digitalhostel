@@ -20,9 +20,15 @@ import {
   Globe,
   ShieldCheck,
   Shield,
+  Lock,
 } from "lucide-react";
 import { useAuth } from "@/core/context/auth-context";
 import { useTenant } from "@/core/context/tenant-context";
+import {
+  isPlanFeatureEnabled,
+  PlanFeatureKey,
+  getRequiredPlanForFeature,
+} from "@/core/config/plans";
 import { useAppDispatch, useAppSelector } from "@/utils/store";
 import { closeMenu } from "@/utils/appSlice";
 import { Logo } from "@/core/components/ui/Logo";
@@ -41,6 +47,7 @@ interface NavSection {
     icon: React.ElementType;
     roles: string[];
     isExternalOrRoot?: boolean;
+    requiredFeature?: PlanFeatureKey;
   }[];
 }
 
@@ -89,41 +96,23 @@ export default function Sidebar({
     if (isSuperAdmin) {
       return [
         {
-          title: "Platform Administration",
           items: [
+
             {
-              label: "Organizations",
-              to: "/super-admin",
-              icon: Building2,
-              roles: ["super_admin"],
-              isExternalOrRoot: true,
-            },
-            {
-              label: "Platform Overview",
+              label: "Overview",
               to: "/super-admin",
               icon: LayoutDashboard,
               roles: ["super_admin"],
               isExternalOrRoot: true,
             },
-          ],
-        },
-        {
-          title: "System & Public Portal",
-          items: [
             {
-              label: "Hostel Directory",
-              to: "/",
-              icon: Globe,
+              label: "Organizations",
+              to: "/super-admin/organizations",
+              icon: Building2,
               roles: ["super_admin"],
               isExternalOrRoot: true,
             },
-            {
-              label: "Security & Auditing",
-              to: "/super-admin",
-              icon: ShieldCheck,
-              roles: ["super_admin"],
-              isExternalOrRoot: true,
-            },
+
           ],
         },
       ];
@@ -184,18 +173,21 @@ export default function Sidebar({
             to: "bills",
             icon: Receipt,
             roles: ["admin", "student"],
+            requiredFeature: "monthlyBilling",
           },
           {
             label: isStudent ? "Fee Receipts" : "Fee Payments",
             to: "payments",
             icon: CreditCard,
             roles: ["admin", "student"],
+            requiredFeature: "onlinePayments",
           },
           {
             label: isStudent ? "Discipline Status" : "Discipline Flags",
             to: "flags",
             icon: AlertTriangle,
             roles: ["admin", "moderator:discipline_monitor", "moderator:administration", "moderator:full"],
+            requiredFeature: "incidentReporting",
           },
           {
             label: "Staff & Wardens",
@@ -247,16 +239,14 @@ export default function Sidebar({
 
   return (
     <aside
-      className={`fixed inset-y-0 left-0 z-40 bg-[var(--color-surface)] border-r border-[var(--color-border)] flex flex-col justify-between transition-all duration-200 ease-out md:sticky md:top-0 md:h-screen shrink-0 h-screen overflow-hidden ${
-        collapsed ? "w-16" : "w-64"
-      } ${isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"} ${className}`}
+      className={`fixed inset-y-0 left-0 z-40 bg-[var(--color-surface)] border-r border-[var(--color-border)] flex flex-col justify-between transition-all duration-200 ease-out md:sticky md:top-0 md:h-screen shrink-0 h-screen overflow-hidden ${collapsed ? "w-16" : "w-64"
+        } ${isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"} ${className}`}
     >
       <div className="flex flex-col flex-1 h-full min-h-0 overflow-hidden">
         {/* Header Branding (Single Source of Truth Logo) */}
         <div
-          className={`flex h-14 shrink-0 items-center border-b border-[var(--color-border)] ${
-            collapsed ? "justify-center px-2" : "justify-between px-4"
-          }`}
+          className={`flex h-14 shrink-0 items-center border-b border-[var(--color-border)] ${collapsed ? "justify-center px-2" : "justify-between px-4"
+            }`}
         >
           {isSuperAdmin ? (
             <Logo
@@ -300,35 +290,50 @@ export default function Sidebar({
                 {visibleItems.map((item, itemIdx) => {
                   const targetPath = item.isExternalOrRoot ? item.to : `${basePath}/${item.to}`;
                   const isActive =
-                    item.to === "/super-admin"
-                      ? location.pathname === "/super-admin" && itemIdx === 0
-                      : location.pathname === targetPath;
+                    item.to === "/super-admin/organizations"
+                      ? location.pathname.startsWith("/super-admin/organizations")
+                      : item.to === "/super-admin"
+                        ? location.pathname === "/super-admin" || location.pathname === "/super-admin/dashboard"
+                        : location.pathname === targetPath;
                   const Icon = item.icon;
+
+                  const isLocked =
+                    !!item.requiredFeature &&
+                    !isSuperAdmin &&
+                    !isPlanFeatureEnabled(organization?.plan, item.requiredFeature);
+                  const minPlan = item.requiredFeature ? getRequiredPlanForFeature(item.requiredFeature) : null;
 
                   return (
                     <Link
                       key={`${item.to}-${itemIdx}`}
                       to={targetPath}
-                      title={collapsed ? item.label : undefined}
-                      className={`flex items-center gap-3 rounded-md px-3 py-2 text-xs transition-colors group relative ${
-                        isActive
-                          ? "bg-[var(--tenant-primary)]/10 text-[var(--text-primary)] font-medium"
-                          : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--color-surface-muted)]"
-                      } ${collapsed ? "justify-center px-0" : ""}`}
+                      title={collapsed ? `${item.label}${isLocked ? ` (${minPlan} Plan)` : ""}` : undefined}
+                      className={`flex items-center justify-between rounded-md px-3 py-2 text-xs transition-colors group relative ${isActive
+                        ? "bg-[var(--tenant-primary)]/10 text-[var(--text-primary)] font-medium"
+                        : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--color-surface-muted)]"
+                        } ${collapsed ? "justify-center px-0" : ""}`}
                     >
-                      {isActive && (
-                        <span
-                          className="absolute left-0 top-1 bottom-1 w-1 rounded-r-sm bg-[var(--tenant-primary)]"
-                          style={{ backgroundColor: primaryColor }}
+                      <div className="flex items-center gap-3 min-w-0">
+                        {isActive && (
+                          <span
+                            className="absolute left-0 top-1 bottom-1 w-1 rounded-r-sm bg-[var(--tenant-primary)]"
+                            style={{ backgroundColor: primaryColor }}
+                          />
+                        )}
+                        <Icon
+                          className={`h-4 w-4 shrink-0 transition-colors ${isActive ? "text-[var(--tenant-primary)]" : "text-[var(--text-muted)] group-hover:text-[var(--text-primary)]"
+                            }`}
+                          style={isActive ? { color: primaryColor } : undefined}
                         />
+                        {!collapsed && <span className="truncate">{item.label}</span>}
+                      </div>
+
+                      {!collapsed && isLocked && minPlan && (
+                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-500 border border-amber-500/20 shrink-0">
+                          <Lock className="w-2.5 h-2.5" />
+                          <span>{minPlan}</span>
+                        </span>
                       )}
-                      <Icon
-                        className={`h-4 w-4 shrink-0 transition-colors ${
-                          isActive ? "text-[var(--tenant-primary)]" : "text-[var(--text-muted)] group-hover:text-[var(--text-primary)]"
-                        }`}
-                        style={isActive ? { color: primaryColor } : undefined}
-                      />
-                      {!collapsed && <span className="truncate">{item.label}</span>}
                     </Link>
                   );
                 })}
@@ -361,9 +366,8 @@ export default function Sidebar({
               navigate(isSuperAdmin ? "/super-admin/login" : slug ? `/organization/${slug}/login` : "/");
             }}
             title="Sign Out"
-            className={`flex items-center gap-2 rounded-md p-2 text-xs text-[var(--text-secondary)] hover:text-[var(--color-danger)] hover:bg-[var(--color-danger-bg)] transition-colors cursor-pointer w-full ${
-              collapsed ? "justify-center" : ""
-            }`}
+            className={`flex items-center gap-2 rounded-md p-2 text-xs text-[var(--text-secondary)] hover:text-[var(--color-danger)] hover:bg-[var(--color-danger-bg)] transition-colors cursor-pointer w-full ${collapsed ? "justify-center" : ""
+              }`}
           >
             <LogOut className="h-4 w-4 shrink-0" />
             {!collapsed && <span>Sign Out</span>}
