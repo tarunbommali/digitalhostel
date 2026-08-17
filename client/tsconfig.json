@@ -22,6 +22,17 @@
 
     "baseUrl": ".",
     "paths": {
+      "@platform": ["./src/modules/super-admin/index.ts"],
+      "@platform/*": ["./src/modules/super-admin/*"],
+      "@organization": ["./src/modules/organization/index.ts"],
+      "@organization/*": ["./src/modules/organization/*"],
+      "@student": ["./src/modules/student/index.ts"],
+      "@student/*": ["./src/modules/student/*"],
+      "@guard": ["./src/modules/guard/index.ts"],
+      "@guard/*": ["./src/modules/guard/*"],
+      "@shared": ["./src/modules/shared/index.ts"],
+      "@shared/*": ["./src/modules/shared/*"],
+      "@core/*": ["./src/core/*"],
       "@/core/*": ["./src/core/*"],
       "@/modules/*": ["./src/modules/*"],
       "@/context/*": ["./src/core/context/*"],

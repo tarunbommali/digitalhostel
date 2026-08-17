@@ -1,15 +1,15 @@
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { Outlet, useLocation, useParams } from "react-router-dom";
 import { useAuth } from "@/core/context/auth-context";
 import { useTenant } from "@/core/context/tenant-context";
 import { useAppDispatch, useAppSelector } from "@/utils/store";
 import { closeMenu } from "@/utils/appSlice";
-import { StudentsProvider } from "@/modules/organization/students/context/students-context";
-import Sidebar from "./Sidebar";
-import Header from "./Header";
+import { StudentProvider } from "../context/student-context";
+import Header from "@/core/components/layout/Header";
+import { StudentSidebar } from "./StudentSidebar";
 
-export default function AppLayout() {
-  const { user, role } = useAuth();
+export const StudentLayout: React.FC = () => {
+  const { user } = useAuth();
   const { organization, fetchTenantBySlug } = useTenant();
   const location = useLocation();
   const { slug } = useParams<{ slug: string }>();
@@ -17,7 +17,6 @@ export default function AppLayout() {
   const isSidebarOpen = useAppSelector((state) => state.app.isMenuOpen);
   const dispatch = useAppDispatch();
 
-  // Fetch tenant data when slug changes
   useEffect(() => {
     dispatch(closeMenu());
     if (slug) {
@@ -25,13 +24,12 @@ export default function AppLayout() {
     }
   }, [location.pathname, slug, fetchTenantBySlug, dispatch]);
 
-  // Dynamically update document title based on route and tenant organization
   useEffect(() => {
     const orgName = organization?.name || "Campus Stay";
     const segment = location.pathname.split("/").filter(Boolean).pop() || "dashboard";
     const formattedSegment =
       segment === "dashboard"
-        ? "Dashboard"
+        ? "Student Portal"
         : segment
             .split("-")
             .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
@@ -40,16 +38,13 @@ export default function AppLayout() {
     document.title = `${formattedSegment} | ${orgName}`;
   }, [location.pathname, organization]);
 
-  // Early return if no user or role
-  if (!user || !role) return null;
+  if (!user || !organization) return null;
 
   return (
-    <StudentsProvider>
+    <StudentProvider>
       <div className="flex min-h-screen bg-[var(--color-bg)] text-[var(--text-primary)] font-sans transition-colors duration-200">
-        {/* Plug-and-Play Sidebar */}
-        <Sidebar />
+        <StudentSidebar />
 
-        {/* Mobile Overlay */}
         {isSidebarOpen && (
           <div
             className="fixed inset-0 z-30 bg-black/60 backdrop-blur-xs md:hidden"
@@ -57,16 +52,16 @@ export default function AppLayout() {
           />
         )}
 
-        {/* Main Content Area */}
         <div className="flex flex-1 flex-col min-w-0">
           <Header />
 
-          {/* Page Content dynamically rendered via Outlet */}
           <main className="flex-1 w-full max-w-[1440px] mx-auto p-4 md:p-6 lg:p-8 space-y-6">
             <Outlet />
           </main>
         </div>
       </div>
-    </StudentsProvider>
+    </StudentProvider>
   );
-}
+};
+
+export default StudentLayout;

@@ -12,7 +12,6 @@ import {
   Clock,
   Layers,
   ChevronRight,
-  LayoutDashboard,
 } from "lucide-react";
 import { Button } from "@/core/components/ui/button";
 import { Badge } from "@/core/components/ui/badge";

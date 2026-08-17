@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Loader2, LayoutDashboard } from "lucide-react";
+import { Loader2, } from "lucide-react";
 import { api } from "@/core/lib/api";
 import { toast } from "sonner";
 import { OrganizationForm } from "../components/OrganizationForm";

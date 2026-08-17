@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "@/core/lib/api";
 import { toast } from "sonner";
-import { LayoutDashboard } from "lucide-react";
 import { useSuperAdmin } from "../context/super-admin-context";
 import { OrganizationFormData } from "../types/organization.types";
 import OrganizationForm from "../components/OrganizationForm";
