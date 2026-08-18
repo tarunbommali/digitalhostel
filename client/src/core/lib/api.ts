@@ -47,7 +47,7 @@ rawAxios.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   return config;
 });
 
-// 2. Response Error Interceptor: Emits Structured ApiError and Handles Global Auth Expiry
+// 2. Response Error Interceptor: Emits Structured ApiError and Handles Tenant-Aware Session Expiry
 rawAxios.interceptors.response.use(
   (response: any) => response,
   (error: AxiosError<{ success: boolean; message: string; error?: { code: string; details: unknown } }>) => {
@@ -62,6 +62,7 @@ rawAxios.interceptors.response.use(
       localStorage.removeItem('token');
       localStorage.removeItem('auth_token');
       localStorage.removeItem('auth_user');
+
       if (typeof window !== 'undefined') {
         const currentPath = window.location.pathname;
         const isAuthRoute =
@@ -90,91 +91,73 @@ rawAxios.interceptors.response.use(
   }
 );
 
-// Typed API Client Wrapper (Guarantees Runtime Return Type === Static TypeScript Type)
-export const http = {
-  get: async <T>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> => {
-    const res = await rawAxios.get<ApiResponse<T>>(url, config);
-    return res.data;
-  },
-  post: async <T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<ApiResponse<T>> => {
-    const res = await rawAxios.post<ApiResponse<T>>(url, data, config);
-    return res.data;
-  },
-  put: async <T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<ApiResponse<T>> => {
-    const res = await rawAxios.put<ApiResponse<T>>(url, data, config);
-    return res.data;
-  },
-  patch: async <T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<ApiResponse<T>> => {
-    const res = await rawAxios.patch<ApiResponse<T>>(url, data, config);
-    return res.data;
-  },
-  delete: async <T>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> => {
-    const res = await rawAxios.delete<ApiResponse<T>>(url, config);
-    return res.data;
-  },
-};
-
-// Backward-compatible api export for existing frontend hooks/components
-export interface ApiOptions {
+export interface ApiOptions extends AxiosRequestConfig {
   noAuth?: boolean;
-  headers?: Record<string, string>;
 }
 
+/**
+ * Single Canonical API Client for Campus Stay
+ * Automatically unwraps standard ApiResponse<T> payloads while preserving direct responses.
+ */
 export const api = {
   get: async <T>(url: string, options?: ApiOptions): Promise<T> => {
     const headers = {
       ...(options?.headers || {}),
       ...(options?.noAuth ? { Authorization: '' } : {}),
     };
-    const res = await rawAxios.get<ApiResponse<T> | T>(url, { headers });
+    const res = await rawAxios.get<ApiResponse<T> | T>(url, { ...options, headers });
     const data = res.data;
     if (data && typeof data === 'object' && 'data' in data && 'success' in data) {
       return (data as ApiResponse<T>).data;
     }
     return data as T;
   },
+
   post: async <T>(url: string, body?: any, options?: ApiOptions): Promise<T> => {
     const headers = {
       ...(options?.headers || {}),
       ...(options?.noAuth ? { Authorization: '' } : {}),
     };
-    const res = await rawAxios.post<ApiResponse<T> | T>(url, body, { headers });
+    const res = await rawAxios.post<ApiResponse<T> | T>(url, body, { ...options, headers });
     const data = res.data;
     if (data && typeof data === 'object' && 'data' in data && 'success' in data) {
       return (data as ApiResponse<T>).data;
     }
     return data as T;
   },
+
   put: async <T>(url: string, body?: any, options?: ApiOptions): Promise<T> => {
     const headers = {
       ...(options?.headers || {}),
       ...(options?.noAuth ? { Authorization: '' } : {}),
     };
-    const res = await rawAxios.put<ApiResponse<T> | T>(url, body, { headers });
+    const res = await rawAxios.put<ApiResponse<T> | T>(url, body, { ...options, headers });
     const data = res.data;
     if (data && typeof data === 'object' && 'data' in data && 'success' in data) {
       return (data as ApiResponse<T>).data;
     }
     return data as T;
   },
+
   patch: async <T>(url: string, body?: any, options?: ApiOptions): Promise<T> => {
     const headers = {
       ...(options?.headers || {}),
       ...(options?.noAuth ? { Authorization: '' } : {}),
     };
-    const res = await rawAxios.patch<ApiResponse<T> | T>(url, body, { headers });
+    const res = await rawAxios.patch<ApiResponse<T> | T>(url, body, { ...options, headers });
     const data = res.data;
     if (data && typeof data === 'object' && 'data' in data && 'success' in data) {
       return (data as ApiResponse<T>).data;
     }
     return data as T;
   },
+
   delete: async <T>(url: string, options?: ApiOptions): Promise<T> => {
     const headers = {
       ...(options?.headers || {}),
       ...(options?.noAuth ? { Authorization: '' } : {}),
     };
-    const res = await rawAxios.delete<ApiResponse<T> | T>(url, { headers });
+    const res = await rawAxios.delete<ApiResponse<T> | T>(url, { ...options, headers });
     const data = res.data;
     if (data && typeof data === 'object' && 'data' in data && 'success' in data) {
       return (data as ApiResponse<T>).data;
@@ -182,3 +165,5 @@ export const api = {
     return data as T;
   },
 };
+
+export default api;
