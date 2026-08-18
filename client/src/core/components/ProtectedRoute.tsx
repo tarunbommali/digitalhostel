@@ -1,11 +1,11 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { Navigate, useLocation, useParams } from "react-router-dom";
 import { useAuth, type AppRole } from "@/core/context/auth-context";
 import { useTenant } from "@/core/context/tenant-context";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-
-import { PlanFeatureKey, isPlanFeatureEnabled } from "@/core/config/plans";
+import { PlanFeatureKey } from "@/core/config/plans";
+import { canAccess } from "@/core/access";
 import { PlanLockedPage } from "./PlanLockedPage";
 
 interface ProtectedRouteProps {
@@ -23,7 +23,7 @@ export function ProtectedRoute({
   superAdminOnly = false,
   requiredFeature,
 }: ProtectedRouteProps) {
-  const { user, role, loading, organizationId, signOut } = useAuth();
+  const { user, role, loading, organizationId } = useAuth();
   const { organization } = useTenant();
   const location = useLocation();
   const { slug } = useParams<{ slug: string }>();
@@ -71,31 +71,37 @@ export function ProtectedRoute({
     return <>{children}</>;
   }
 
-  // 4. Role-based Access Check
-  if (allowedRoles && role && !allowedRoles.includes(role)) {
-    toast.error("You do not have permission to access this page");
-
-    if (role === "super_admin") {
-      return <Navigate to="/super-admin" replace />;
-    } else if (slug) {
-      return <Navigate to={`/organization/${slug}/dashboard`} replace />;
-    } else if (organizationId) {
-      return <Navigate to="/" replace />;
-    }
-    return <Navigate to="/" replace />;
-  }
-
-  // 5. Organization Context Requirement Check
+  // 4. Organization Context Requirement Check
   if (requireOrganization && !organizationId && !slug) {
     toast.error("Organization context required");
     return <Navigate to="/" replace />;
   }
 
-  // 7. Plan Feature Gating Check
-  if (requiredFeature && role !== "super_admin") {
-    const currentPlan = organization?.plan;
-    if (!isPlanFeatureEnabled(currentPlan, requiredFeature)) {
-      return <PlanLockedPage featureKey={requiredFeature} />;
+  // 5. Unified Access Resolver (RBAC + Plan Gating + Organization Module Toggle)
+  if (role !== "super_admin") {
+    const access = canAccess({
+      organization,
+      role,
+      requiredFeature,
+      allowedRoles,
+    });
+
+    if (!access.allowed) {
+      if (access.reason === "ROLE_NOT_ALLOWED") {
+        toast.error("You do not have permission to access this page");
+        if (slug) return <Navigate to={`/organization/${slug}/dashboard`} replace />;
+        return <Navigate to="/" replace />;
+      }
+
+      if (access.reason === "PLAN_REQUIRED" && requiredFeature) {
+        return <PlanLockedPage featureKey={requiredFeature} />;
+      }
+
+      if (access.reason === "DISABLED_BY_ORGANIZATION") {
+        toast.error("This module is currently disabled by your organization administrator");
+        if (slug) return <Navigate to={`/organization/${slug}/dashboard`} replace />;
+        return <Navigate to="/" replace />;
+      }
     }
   }
 

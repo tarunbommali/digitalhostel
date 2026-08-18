@@ -1,0 +1,98 @@
+import { useEffect, useState } from "react";
+import { api } from "@/core/lib/api";
+import { Card } from "@/core/components/ui/card";
+import { Badge } from "@/core/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/core/components/ui/table";
+import { formatCurrency } from "@/core/utils/format";
+import { PageHeader } from "@/core/components/ui/PageHeader";
+
+export function StudentPaymentsView() {
+  const [payments, setPayments] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api
+      .get<any[]>("/payments")
+      .then(setPayments)
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  return (
+    <div className="space-y-6 animate-in fade-in duration-150">
+      <PageHeader
+        eyebrow="Finance"
+        title="My Payment History"
+        description="Track recorded fee settlements, SBI Collect receipts, and transaction status"
+        breadcrumbs={[
+          { label: "Hostel", to: "dashboard" },
+          { label: "Fee Receipts" },
+        ]}
+      />
+
+      <Card className="overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Date</TableHead>
+              <TableHead>SBI Collect Ref ID</TableHead>
+              <TableHead>Amount</TableHead>
+              <TableHead>Method</TableHead>
+              <TableHead>Remarks</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading && (
+              <TableRow>
+                <TableCell
+                  colSpan={5}
+                  className="text-center py-6 text-muted-foreground"
+                >
+                  Loading payments…
+                </TableCell>
+              </TableRow>
+            )}
+            {!loading && payments.length === 0 && (
+              <TableRow>
+                <TableCell
+                  colSpan={5}
+                  className="text-center py-6 text-muted-foreground"
+                >
+                  No payment records found.
+                </TableCell>
+              </TableRow>
+            )}
+            {payments.map((p) => (
+              <TableRow key={p._id}>
+                <TableCell>
+                  {p.createdAt
+                    ? new Date(p.createdAt).toLocaleDateString()
+                    : "—"}
+                </TableCell>
+                <TableCell className="font-mono">{p.referenceId || "—"}</TableCell>
+                <TableCell className="font-semibold text-green-600">
+                  {formatCurrency(p.amount)}
+                </TableCell>
+                <TableCell>
+                  <Badge variant="outline">{p.paymentMethod || "SBI Collect"}</Badge>
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  {p.remarks || "—"}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </Card>
+    </div>
+  );
+}
+
+export default StudentPaymentsView;

@@ -9,14 +9,12 @@ import { Toaster } from "sonner";
 export default function RootLayout() {
   return (
     <Provider store={store}>
-      <ThemeProvider>
-        <AuthProvider>
-          <TenantProvider>
-            <Outlet />
-            <Toaster richColors position="top-right" />
-          </TenantProvider>
-        </AuthProvider>
-      </ThemeProvider>
+      <AuthProvider>
+        <TenantProvider>
+          <Outlet />
+          <Toaster richColors position="top-right" />
+        </TenantProvider>
+      </AuthProvider>
     </Provider>
   );
 }

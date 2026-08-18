@@ -41,8 +41,13 @@ export const SuperAdminProvider: React.FC<{ children: ReactNode }> = ({ children
     setLoading(true);
     setError(null);
     try {
-      const data = await api.get<Organization[]>("/super-admin/organizations");
-      setOrganizations(data || []);
+      const data = await api.get<any[]>("/super-admin/organizations");
+      const normalizedOrgs: Organization[] = (data || []).map((o) => ({
+        ...o,
+        plan: (o.plan ? String(o.plan).toLowerCase() : "basic") as any,
+        subscriptionStatus: (o.subscriptionStatus ? String(o.subscriptionStatus).toLowerCase() : "active") as any,
+      }));
+      setOrganizations(normalizedOrgs);
       isFetchedRef.current = true;
     } catch (err: any) {
       const msg = err.message || "Failed to load registered organizations";
@@ -62,17 +67,17 @@ export const SuperAdminProvider: React.FC<{ children: ReactNode }> = ({ children
   const kpis: KPIMetrics = useMemo(() => {
     const total = organizations.length;
     const active = organizations.filter(
-      (o) => (o.subscriptionStatus || "").toLowerCase() === "active"
+      (o) => o.subscriptionStatus === "active"
     ).length;
-    const totalUsers = organizations.reduce((acc, o) => acc + (o.totalUsers || 1), 0);
+    const totalUsers = organizations.reduce((acc, o) => acc + (o.totalUsers || 0), 0);
     const enterpriseCount = organizations.filter(
-      (o) => (o.plan || "").toUpperCase() === "ENTERPRISE"
+      (o) => o.plan === "enterprise"
     ).length;
     const proCount = organizations.filter(
-      (o) => (o.plan || "").toUpperCase() === "PRO"
+      (o) => o.plan === "pro"
     ).length;
     const basicCount = organizations.filter(
-      (o) => (o.plan || "").toUpperCase() === "BASIC"
+      (o) => o.plan === "basic"
     ).length;
 
     return { total, active, totalUsers, enterpriseCount, proCount, basicCount };

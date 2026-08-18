@@ -35,6 +35,7 @@ describe('Integration: Payment Multi-Bill Chronological Settlement (FR-PAYMENT-0
       slug: 'skyline-luxury',
       location: 'Bangalore',
       adminEmail: 'admin.skyline@hostel.edu',
+      plan: 'ENTERPRISE',
     });
 
     adminUser = await User.create({

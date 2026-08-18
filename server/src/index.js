@@ -35,24 +35,39 @@ const logRoutes = require('./routes/logs');
 
 const app = express();
 
-// 1. HTTP Security Headers with Helmet
-app.use(helmet());
+// 1. HTTP Security Headers with Helmet (configured for cross-origin API access)
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  })
+);
 
-// 2. CORS Configuration with strict Origin validation
+// 2. CORS Configuration with robust origin validation
 const allowedOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim())
-  : ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173', 'http://127.0.0.1:3000'];
+  : [
+      'http://localhost:5173',
+      'http://localhost:5174',
+      'http://localhost:3000',
+      'http://127.0.0.1:5173',
+      'http://127.0.0.1:5174',
+      'http://127.0.0.1:3000',
+    ];
 
 const corsOptions = {
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps, curl, server-to-server) in non-production
-    if (!origin && process.env.NODE_ENV !== 'production') {
+    // In development or when no origin is passed (curl, SSR, native)
+    if (!origin || process.env.NODE_ENV !== 'production') {
       return callback(null, true);
     }
-    if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+    // Allow any localhost/127.0.0.1 origin in local testing
+    if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
       return callback(null, true);
     }
-    return callback(new Error(`CORS Error: Origin ${origin} is not allowed by Access-Control policy`));
+    if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+      return callback(null, true);
+    }
+    return callback(null, false);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'],
@@ -64,6 +79,8 @@ const corsOptions = {
     'x-requested-with',
     'Accept',
     'Origin',
+    'Cache-Control',
+    'X-Requested-With',
   ],
   exposedHeaders: ['Content-Range', 'X-Content-Range', 'ETag'],
   optionsSuccessStatus: 204,

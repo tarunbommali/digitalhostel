@@ -59,6 +59,10 @@ const OrganizationSchema = new mongoose.Schema(
       lowercase: true,
       index: true,
     },
+    features: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
+    },
     isPublic: {
       type: Boolean,
       default: true,

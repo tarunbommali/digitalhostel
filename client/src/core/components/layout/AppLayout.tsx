@@ -4,7 +4,7 @@ import { useAuth } from "@/core/context/auth-context";
 import { useTenant } from "@/core/context/tenant-context";
 import { useAppDispatch, useAppSelector } from "@/utils/store";
 import { closeMenu } from "@/utils/appSlice";
-import { StudentsProvider } from "@/modules/organization/students/context/students-context";
+import { StudentsProvider } from "@organization";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 

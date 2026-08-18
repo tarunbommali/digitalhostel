@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Organization = require('../models/Organization');
 const User = require('../models/User');
 const {
@@ -66,9 +67,18 @@ class OrganizationService {
       throw new BadRequestError('Organization slug is required');
     }
 
-    const org = await Organization.findOne({ slug: slug.toLowerCase().trim(), isActive: true })
-      .select('name slug location plan subscriptionStatus branding settings isActive')
+    const cleanSlug = slug.toLowerCase().trim();
+    const isObjectId = mongoose.isValidObjectId(cleanSlug) && /^[0-9a-fA-F]{24}$/.test(cleanSlug);
+
+    let org = await Organization.findOne({ slug: cleanSlug, isActive: true })
+      .select('name slug location plan subscriptionStatus branding settings features isActive')
       .lean();
+
+    if (!org && isObjectId) {
+      org = await Organization.findOne({ _id: cleanSlug, isActive: true })
+        .select('name slug location plan subscriptionStatus branding settings features isActive')
+        .lean();
+    }
 
     if (!org) {
       throw new NotFoundError(`Hostel organization '${slug}' not found or inactive`);
@@ -89,6 +99,7 @@ class OrganizationService {
         tagline: 'Smart Multi-Tenant Hostel Living',
       },
       settings: org.settings,
+      features: org.features || {},
       isActive: org.isActive,
     };
   }
@@ -225,6 +236,18 @@ class OrganizationService {
 
     if (payload.settings && typeof payload.settings === 'object' && actorUser.role === 'super_admin') {
       org.settings = { ...org.settings.toObject(), ...payload.settings };
+    }
+
+    if (payload.features && typeof payload.features === 'object') {
+      const currentFeatures = org.features ? (typeof org.features.toObject === 'function' ? org.features.toObject() : org.features) : {};
+      org.features = { ...currentFeatures, ...payload.features };
+      org.markModified('features');
+    } else if (payload.featureId && payload.config) {
+      const currentFeatures = org.features ? (typeof org.features.toObject === 'function' ? org.features.toObject() : org.features) : {};
+      const existingFeatureConfig = currentFeatures[payload.featureId] || {};
+      currentFeatures[payload.featureId] = { ...existingFeatureConfig, ...payload.config };
+      org.features = currentFeatures;
+      org.markModified('features');
     }
 
     await org.save();

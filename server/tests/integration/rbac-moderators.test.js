@@ -23,6 +23,7 @@ describe('Integration: RBAC Hierarchy & Moderator Capabilities (FR-AUTH-03)', ()
       slug: 'skyline-luxury',
       location: 'Bangalore',
       adminEmail: 'admin.skyline@hostel.edu',
+      plan: 'ENTERPRISE',
     });
 
     adminUser = await User.create({

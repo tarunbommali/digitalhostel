@@ -1,11 +1,14 @@
+export type OrganizationPlan = 'basic' | 'pro' | 'enterprise';
+export type OrganizationSubscriptionStatus = 'active' | 'trial' | 'expired' | 'inactive' | 'cancelled';
+
 export interface Organization {
   _id: string;
   id?: string;
   name: string;
   slug: string;
   location: string;
-  plan: 'Basic' | 'Pro' | 'Enterprise' | 'BASIC' | 'PRO' | 'ENTERPRISE';
-  subscriptionStatus: 'Active' | 'Trial' | 'Expired' | 'Inactive' | 'Cancelled' | 'active' | 'trial' | 'expired' | 'inactive' | 'cancelled';
+  plan: OrganizationPlan;
+  subscriptionStatus: OrganizationSubscriptionStatus;
   adminName?: string;
   adminEmail: string;
   totalUsers?: number;

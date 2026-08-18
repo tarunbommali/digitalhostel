@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { api } from "@/core/lib/api";
 import { useAuth } from "@/core/context/auth-context";
-import Header from "@/components/layout/Header";
+import Header from "@/core/components/layout/Header";
 import { Badge } from "@/core/components/ui/badge";
 import { PricingComparison } from "../components/PricingComparison";
 

@@ -36,6 +36,7 @@ describe('Integration: Multi-Tenant Data Isolation (FR-TENANT-01)', () => {
       slug: 'skyline-luxury',
       location: 'Bangalore',
       adminEmail: 'admin.skyline@hostel.edu',
+      plan: 'ENTERPRISE',
     });
     adminA = await User.create({
       email: 'admin.skyline@hostel.edu',
@@ -52,6 +53,7 @@ describe('Integration: Multi-Tenant Data Isolation (FR-TENANT-01)', () => {
       slug: 'green-valley',
       location: 'Pune',
       adminEmail: 'admin.greenvalley@hostel.edu',
+      plan: 'ENTERPRISE',
     });
     adminB = await User.create({
       email: 'admin.greenvalley@hostel.edu',

@@ -1,10 +1,10 @@
 import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
 import { ThemeProvider } from "@/core/context/theme-context";
 import { ProtectedRoute } from "@/core/components/ProtectedRoute";
-import RootLayout from "@/components/layout/RootLayout";
-import { SuperAdminGuard } from "@/components/layout/SuperAdminGuard";
-import { PublicGuard } from "@/components/layout/PublicGuard";
-import ErrorBoundary from "@/components/layout/ErrorBoundary";
+import RootLayout from "@/core/components/layout/RootLayout";
+import { SuperAdminGuard } from "@/core/components/layout/SuperAdminGuard";
+import { PublicGuard } from "@/core/components/layout/PublicGuard";
+import ErrorBoundary from "@/core/components/layout/ErrorBoundary";
 
 // Public Modules
 import LandingPage from "@/modules/landing/pages/LandingPage";
@@ -38,6 +38,18 @@ import {
   FlagsPage,
   ModeratorsPage,
   SettingsPage,
+  GeneralSettingsPage,
+  BrandingSettingsPage,
+  FeaturesSettingsPage,
+  StaffSettingsPage,
+  CreateModeratorPage,
+  EditModeratorPage,
+  NotificationsSettingsPage,
+  SecuritySettingsPage,
+  FeatureManagement,
+  AccountPage,
+  HostelSetupPage,
+  AcademicSetupPage,
 } from "@organization";
 
 // Tier 3: Student Portal
@@ -143,19 +155,47 @@ const appRouter = createBrowserRouter([
           },
           {
             path: "moderators",
-            element: (
-              <ProtectedRoute requireOrganization allowedRoles={["admin"]}>
-                <ModeratorsPage />
-              </ProtectedRoute>
-            ),
+            element: <Navigate to="../settings/staff" replace />,
           },
           {
             path: "rooms",
             element: (
-              <ProtectedRoute requireOrganization allowedRoles={["admin"]}>
+              <ProtectedRoute requireOrganization requiredFeature="roomManagement">
                 <RoomsPage />
               </ProtectedRoute>
             ),
+          },
+          {
+            path: "hostel-setup",
+            element: (
+              <ProtectedRoute requireOrganization allowedRoles={["admin", "moderator"]}>
+                <HostelSetupPage />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "setup/hostel",
+            element: <Navigate to="../hostel-setup" replace />,
+          },
+          {
+            path: "settings/hostel-setup",
+            element: <Navigate to="../hostel-setup" replace />,
+          },
+          {
+            path: "academic-setup",
+            element: (
+              <ProtectedRoute requireOrganization allowedRoles={["admin", "moderator"]}>
+                <AcademicSetupPage />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "setup/academic",
+            element: <Navigate to="../academic-setup" replace />,
+          },
+          {
+            path: "settings/academic-setup",
+            element: <Navigate to="../academic-setup" replace />,
           },
           {
             path: "attendance",
@@ -217,10 +257,94 @@ const appRouter = createBrowserRouter([
             ),
           },
           {
+            path: "features",
+            element: <Navigate to="../settings/features" replace />,
+          },
+          {
             path: "settings",
             element: (
               <ProtectedRoute requireOrganization allowedRoles={["admin"]}>
-                <SettingsPage />
+                <GeneralSettingsPage />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "settings/general",
+            element: (
+              <ProtectedRoute requireOrganization allowedRoles={["admin"]}>
+                <GeneralSettingsPage />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "settings/branding",
+            element: (
+              <ProtectedRoute requireOrganization allowedRoles={["admin"]}>
+                <BrandingSettingsPage />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "settings/features",
+            element: (
+              <ProtectedRoute requireOrganization allowedRoles={["admin"]}>
+                <FeaturesSettingsPage />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "settings/staff",
+            element: (
+              <ProtectedRoute requireOrganization allowedRoles={["admin"]}>
+                <StaffSettingsPage />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "settings/staff/new",
+            element: (
+              <ProtectedRoute requireOrganization allowedRoles={["admin"]}>
+                <CreateModeratorPage />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "moderators/new",
+            element: <Navigate to="../settings/staff/new" replace />,
+          },
+          {
+            path: "settings/staff/:id/edit",
+            element: (
+              <ProtectedRoute requireOrganization allowedRoles={["admin"]}>
+                <EditModeratorPage />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "moderators/:id/edit",
+            element: <Navigate to="../settings/staff" replace />,
+          },
+          {
+            path: "settings/notifications",
+            element: (
+              <ProtectedRoute requireOrganization allowedRoles={["admin"]}>
+                <NotificationsSettingsPage />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "settings/security",
+            element: (
+              <ProtectedRoute requireOrganization allowedRoles={["admin"]}>
+                <SecuritySettingsPage />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "account",
+            element: (
+              <ProtectedRoute requireOrganization allowedRoles={["admin", "moderator"]}>
+                <AccountPage />
               </ProtectedRoute>
             ),
           },

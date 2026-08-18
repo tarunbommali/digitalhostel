@@ -16,8 +16,8 @@ import { Input } from "@/core/components/ui/input";
 import { Button } from "@/core/components/ui/button";
 import { Badge } from "@/core/components/ui/badge";
 import { Textarea } from "@/core/components/ui/textarea";
-import { LiveCameraScanner } from "@/modules/organization/attendance/components/LiveCameraScanner";
-import { useCameraScanner } from "@/modules/organization/attendance/hooks/useCameraScanner";
+import { LiveCameraScanner } from "@/modules/organization/operations/attendance/components/LiveCameraScanner";
+import { useCameraScanner } from "@/modules/organization/operations/attendance/hooks/useCameraScanner";
 import { useGuard } from "../context/guard-context";
 import { toast } from "sonner";
 

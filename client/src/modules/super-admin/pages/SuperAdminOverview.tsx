@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/core/components/ui/button";
 import { Badge } from "@/core/components/ui/badge";
-import { Breadcrumbs } from "@/core/components/ui/Breadcrumbs";
+import { PageHeader } from "@/core/components/ui/PageHeader";
 import { useOrganizations } from "../hooks/useOrganizations";
 import { KPICards } from "../components/KPICards";
 import { useOnline } from "@/hooks/useOnline";
@@ -29,21 +29,19 @@ export default function SuperAdminOverview() {
   }, []);
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-200">
+    <div className="space-y-8 animate-in fade-in duration-150">
       {/* =========================================================================
           PAGE HEADER
          ========================================================================= */}
-      <div className="space-y-3 pb-4 border-b border-[var(--color-border)]">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="font-display text-2xl font-bold text-[var(--text-primary)] tracking-tight">
-              Platform Overview
-            </h1>
-            <p className="font-small text-xs text-[var(--text-secondary)] mt-1">
-              Global system health, multi-tenant workspace distribution, and server infrastructure
-            </p>
-          </div>
-
+      <PageHeader
+        eyebrow="Platform Administration"
+        title="Platform Overview"
+        description="Global system health, multi-tenant workspace distribution, and server infrastructure"
+        breadcrumbs={[
+          { label: "Super Admin", to: "/super-admin" },
+          { label: "Overview" },
+        ]}
+        actions={
           <div className="flex items-center gap-2.5">
             <Button asChild variant="outline" size="sm" className="gap-1.5">
               <Link to="/super-admin/organizations">
@@ -58,16 +56,8 @@ export default function SuperAdminOverview() {
               </Link>
             </Button>
           </div>
-        </div>
-
-        {/* Page-Specific Breadcrumbs */}
-        <Breadcrumbs
-          items={[
-            { label: "Super Admin", },
-            { label: "Overview" },
-          ]}
-        />
-      </div>
+        }
+      />
 
       {/* =========================================================================
           SYSTEM STATUS ROW
@@ -99,8 +89,8 @@ export default function SuperAdminOverview() {
               <Clock className="w-4 h-4" />
             </div>
             <div>
-              <p className="text-[11px] text-[var(--text-muted)] font-medium">Uptime SLA</p>
-              <p className="font-semibold text-[var(--text-primary)]">99.9%</p>
+              <p className="text-[11px] text-[var(--text-muted)] font-medium">Target SLA</p>
+              <p className="font-semibold text-[var(--text-primary)]">99.9% Target</p>
             </div>
           </div>
 

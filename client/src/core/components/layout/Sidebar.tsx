@@ -21,6 +21,10 @@ import {
   ShieldCheck,
   Shield,
   Lock,
+  Layers,
+  Palette,
+  Bell,
+  GraduationCap,
 } from "lucide-react";
 import { useAuth } from "@/core/context/auth-context";
 import { useTenant } from "@/core/context/tenant-context";
@@ -39,16 +43,19 @@ export interface SidebarProps {
   onClose?: () => void;
 }
 
+interface NavItemDef {
+  label: string;
+  to: string;
+  icon: React.ElementType;
+  roles: string[];
+  isExternalOrRoot?: boolean;
+  featureId?: string;
+  requiredFeature?: PlanFeatureKey;
+}
+
 interface NavSection {
   title?: string;
-  items: {
-    label: string;
-    to: string;
-    icon: React.ElementType;
-    roles: string[];
-    isExternalOrRoot?: boolean;
-    requiredFeature?: PlanFeatureKey;
-  }[];
+  items: NavItemDef[];
 }
 
 export default function Sidebar({
@@ -59,7 +66,7 @@ export default function Sidebar({
   const reduxIsOpen = useAppSelector((state) => state.app.isMenuOpen);
   const dispatch = useAppDispatch();
   const { user, role, moderatorType, signOut } = useAuth();
-  const { organization } = useTenant();
+  const { organization, isFeatureEnabled } = useTenant();
   const { slug } = useParams<{ slug: string }>();
   const location = useLocation();
   const navigate = useNavigate();
@@ -91,13 +98,12 @@ export default function Sidebar({
   const isAttendanceOnly = role === "moderator" && moderatorType === "attendance_only";
   const isDisciplineMonitor = role === "moderator" && moderatorType === "discipline_monitor";
 
-  // Dynamic Navigation Sections based on Role Hierarchy
+  // Dynamic Navigation Sections based on Role Hierarchy & Enabled Feature Flags
   const sections: NavSection[] = React.useMemo(() => {
     if (isSuperAdmin) {
       return [
         {
           items: [
-
             {
               label: "Overview",
               to: "/super-admin",
@@ -112,7 +118,6 @@ export default function Sidebar({
               roles: ["super_admin"],
               isExternalOrRoot: true,
             },
-
           ],
         },
       ];
@@ -120,7 +125,7 @@ export default function Sidebar({
 
     return [
       {
-        title: isStudent ? "Resident Portal" : "Core Operations",
+        title: "Overview",
         items: [
           {
             label: isStudent ? "Student Dashboard" : "Dashboard",
@@ -128,51 +133,82 @@ export default function Sidebar({
             icon: LayoutDashboard,
             roles: ["admin", "moderator", "student", "security_guard"],
           },
+        ],
+      },
+      {
+        title: "Residents",
+        items: [
           {
             label: "Students Directory",
             to: "students",
             icon: Users,
             roles: ["admin", "moderator:administration", "moderator:full"],
+            featureId: "students",
           },
           {
             label: "Rooms & Beds",
             to: "rooms",
             icon: DoorOpen,
             roles: ["admin", "moderator:administration", "moderator:full"],
-          },
-        ],
-      },
-      {
-        title: isStudent ? "Daily Requests" : "Daily Passes & Mess",
-        items: [
-          {
-            label: isSecurityGuard ? "Gate Scanner (QR)" : "Gate Outing Pass",
-            to: isSecurityGuard ? "scanner" : "outings",
-            icon: OutingIcon,
-            roles: ["admin", "moderator:administration", "moderator:full", "student", "security_guard"],
+            featureId: "rooms",
           },
           {
             label: "Leave Requests",
             to: "leaves",
             icon: Calendar,
             roles: ["admin", "moderator:administration", "moderator:full", "student"],
+            featureId: "leaves",
+          },
+          {
+            label: "Hostel Setup",
+            to: "hostel-setup",
+            icon: Building2,
+            roles: ["admin", "moderator:administration", "moderator:full"],
+          },
+          {
+            label: "Academic Setup",
+            to: "academic-setup",
+            icon: GraduationCap,
+            roles: ["admin", "moderator:administration", "moderator:full"],
+          },
+        ],
+      },
+      {
+        title: isStudent ? "Daily Passes & Requests" : "Operations",
+        items: [
+          {
+            label: isSecurityGuard ? "Gate Scanner (QR)" : "Gate Outing Pass",
+            to: isSecurityGuard ? "scanner" : "outings",
+            icon: OutingIcon,
+            roles: ["admin", "moderator:administration", "moderator:full", "student", "security_guard"],
+            featureId: "outings",
           },
           {
             label: "Mess Attendance",
             to: "attendance",
             icon: CalendarCheck,
             roles: ["admin", "moderator:attendance_only", "moderator:full"],
+            featureId: "attendance",
+          },
+          {
+            label: isStudent ? "Discipline Status" : "Discipline Flags",
+            to: "flags",
+            icon: AlertTriangle,
+            roles: ["admin", "moderator:discipline_monitor", "moderator:administration", "moderator:full", "student"],
+            featureId: "discipline",
+            requiredFeature: "incidentReporting",
           },
         ],
       },
       {
-        title: isStudent ? "Finances" : "Finance & Governance",
+        title: "Finance",
         items: [
           {
             label: isStudent ? "Monthly Invoices" : "Monthly Bills",
             to: "bills",
             icon: Receipt,
             roles: ["admin", "student"],
+            featureId: "billing",
             requiredFeature: "monthlyBilling",
           },
           {
@@ -180,25 +216,48 @@ export default function Sidebar({
             to: "payments",
             icon: CreditCard,
             roles: ["admin", "student"],
+            featureId: "payments",
             requiredFeature: "onlinePayments",
           },
+        ],
+      },
+      {
+        title: "Organization Settings",
+        items: [
           {
-            label: isStudent ? "Discipline Status" : "Discipline Flags",
-            to: "flags",
-            icon: AlertTriangle,
-            roles: ["admin", "moderator:discipline_monitor", "moderator:administration", "moderator:full"],
-            requiredFeature: "incidentReporting",
+            label: "General",
+            to: "settings/general",
+            icon: Building2,
+            roles: ["admin"],
           },
           {
-            label: "Staff & Wardens",
-            to: "moderators",
+            label: "Branding",
+            to: "settings/branding",
+            icon: Palette,
+            roles: ["admin"],
+          },
+          {
+            label: "Features & Modules",
+            to: "settings/features",
+            icon: Layers,
+            roles: ["admin"],
+          },
+          {
+            label: "Staff & Roles",
+            to: "settings/staff",
             icon: UserCheck,
             roles: ["admin"],
           },
           {
-            label: "Hostel Settings",
-            to: "settings",
-            icon: Settings,
+            label: "Notifications",
+            to: "settings/notifications",
+            icon: Bell,
+            roles: ["admin"],
+          },
+          {
+            label: "Security",
+            to: "settings/security",
+            icon: ShieldCheck,
             roles: ["admin"],
           },
         ],
@@ -206,8 +265,13 @@ export default function Sidebar({
     ];
   }, [isSuperAdmin, isStudent, isSecurityGuard]);
 
-  // Role Item Filter
-  const filterItem = (item: { roles: string[] }) => {
+  // Dynamic Feature Flag & Role Item Filter
+  const filterItem = (item: NavItemDef) => {
+    // Check modular SaaS feature flag
+    if (item.featureId && !isFeatureEnabled(item.featureId)) {
+      return false;
+    }
+
     if (isSuperAdmin) return true;
     if (isHostelAdmin) return true;
 
@@ -243,10 +307,11 @@ export default function Sidebar({
         } ${isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"} ${className}`}
     >
       <div className="flex flex-col flex-1 h-full min-h-0 overflow-hidden">
-        {/* Header Branding (Single Source of Truth Logo) */}
+        {/* Header Branding & Tenant Identity Block */}
         <div
-          className={`flex h-14 shrink-0 items-center border-b border-[var(--color-border)] ${collapsed ? "justify-center px-2" : "justify-between px-4"
-            }`}
+          className={`flex h-16 shrink-0 items-center border-b border-[var(--color-border)] ${
+            collapsed ? "justify-center px-2" : "justify-between px-4"
+          }`}
         >
           {isSuperAdmin ? (
             <Logo
@@ -255,15 +320,41 @@ export default function Sidebar({
               size="md"
               showWordmark={!collapsed}
             />
-          ) : (
+          ) : collapsed ? (
             <Logo
               variant="tenant"
               to={`${basePath}/dashboard`}
               size="md"
               logoUrl={organization?.branding?.logoUrl}
               orgName={organization?.name}
-              showWordmark={!collapsed}
+              showWordmark={false}
             />
+          ) : (
+            <div className="flex items-center gap-2.5 min-w-0">
+              {organization?.branding?.logoUrl ? (
+                <img
+                  src={organization.branding.logoUrl}
+                  alt={organization.name}
+                  className="h-8 w-8 rounded-lg object-contain border border-[var(--color-border)] bg-white p-0.5 shrink-0"
+                />
+              ) : (
+                <div
+                  className="h-8 w-8 rounded-lg grid place-items-center text-white font-bold text-xs shrink-0 shadow-xs"
+                  style={{ backgroundColor: primaryColor }}
+                >
+                  {organization?.name ? organization.name.slice(0, 2).toUpperCase() : "CS"}
+                </div>
+              )}
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-[var(--text-primary)] truncate">
+                  {organization?.name || "Campus Stay"}
+                </p>
+                <div className="flex items-center gap-1.5 text-[10px] text-[var(--text-muted)]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-success)]" />
+                  <span className="truncate">{getRoleLabel()}</span>
+                </div>
+              </div>
+            </div>
           )}
           <button
             className="md:hidden text-[var(--text-secondary)] hover:text-[var(--text-primary)] p-1 cursor-pointer"
@@ -346,17 +437,20 @@ export default function Sidebar({
       {/* Footer Area with User Profile & Collapse Toggle */}
       <div className="border-t border-[var(--color-border)] p-2 space-y-2 bg-[var(--color-surface-sunken)]/40 shrink-0">
         {!collapsed && (
-          <div className="px-2 py-1.5 flex items-center justify-between">
+          <Link
+            to={slug ? `/organization/${slug}/account` : isSuperAdmin ? "/super-admin" : "/account"}
+            className="px-2 py-1.5 flex items-center justify-between rounded-lg hover:bg-[var(--color-surface-muted)] transition-colors cursor-pointer group select-none"
+            title="View Account & Subscription"
+          >
             <div className="overflow-hidden">
-              <p className="font-body-medium text-xs text-[var(--text-primary)] truncate font-semibold">
-                {user?.fullName || (isSuperAdmin ? "Super Admin" : "Active User")}
+              <p className="font-body-medium text-xs text-[var(--text-primary)] truncate font-semibold group-hover:text-[var(--tenant-primary)]">
+                {organization?.name || user?.firstName || (isSuperAdmin ? "Super Admin" : "Hostel")}
               </p>
-              <p className="text-[11px] text-[var(--text-muted)] truncate">{user?.email}</p>
-              <p className="text-[10px] text-[var(--tenant-primary)] font-semibold uppercase mt-0.5">
+              <p className="text-[11px] text-[var(--text-muted)] truncate capitalize">
                 {getRoleLabel()}
               </p>
             </div>
-          </div>
+          </Link>
         )}
 
         <div className="flex items-center gap-1">

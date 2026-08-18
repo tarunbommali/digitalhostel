@@ -8,6 +8,9 @@ import React, {
   useEffect,
 } from "react";
 import { api } from "@/core/lib/api";
+import { OrganizationFeatureState, FeatureConfig } from "@/core/types/feature.types";
+import { FEATURE_REGISTRY } from "@/core/features/feature-registry";
+import { toast } from "sonner";
 
 export interface OrganizationBranding {
   tagline?: string;
@@ -39,19 +42,30 @@ export interface Organization {
   supportEmail?: string;
   branding?: OrganizationBranding;
   settings?: OrganizationSettings;
+  features?: Record<string, FeatureConfig>;
   maxStudents?: number;
   maxRooms?: number;
+  totalRooms?: number;
+  totalBeds?: number;
+  totalStudents?: number;
   isActive?: boolean;
   isVerified?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
 
-interface TenantContextType {
+export interface TenantContextType {
   organization: Organization | null;
+  featureState: OrganizationFeatureState;
   loading: boolean;
   error: string | null;
   fetchTenantBySlug: (slug: string) => Promise<Organization | null>;
+  fetchOrganization: (slug: string) => Promise<void>;
+  updateFeature: (featureId: string, config: Partial<FeatureConfig>) => Promise<void>;
+  isFeatureEnabled: (featureId: string) => boolean;
+  getFeatureConfig: (featureId: string) => FeatureConfig | null;
+  getEnabledFeatures: () => string[];
+  refreshFeatures: () => Promise<void>;
   clearTenant: () => void;
   validateUserAccess: (userOrgId?: string) => boolean;
 }
@@ -60,6 +74,7 @@ const TenantContext = createContext<TenantContextType | undefined>(undefined);
 
 export function TenantProvider({ children }: { children: React.ReactNode }) {
   const [organization, setOrganization] = useState<Organization | null>(null);
+  const [featureState, setFeatureState] = useState<OrganizationFeatureState>({});
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -92,6 +107,17 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const initializeFeatureState = useCallback((orgFeatures?: Record<string, FeatureConfig>) => {
+    const features: OrganizationFeatureState = {};
+    FEATURE_REGISTRY.forEach((feature) => {
+      features[feature.id] = orgFeatures?.[feature.id] || {
+        ...feature.defaultConfig,
+        enabled: feature.isCore ? true : (orgFeatures?.[feature.id]?.enabled ?? feature.defaultConfig.enabled),
+      };
+    });
+    setFeatureState(features);
+  }, []);
+
   const fetchTenantBySlug = useCallback(
     async (slug: string): Promise<Organization | null> => {
       if (!slug) return null;
@@ -121,6 +147,8 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
           }
 
           setOrganization(data);
+          initializeFeatureState(data.features);
+
           if (data._id) {
             localStorage.setItem("organizationId", data._id);
             localStorage.setItem(`org_mapping_${slug}`, data._id);
@@ -142,11 +170,103 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
       inFlightRequestsRef.current.set(normalizedSlug, requestPromise);
       return requestPromise;
     },
-    [applyTenantBranding]
+    [applyTenantBranding, initializeFeatureState]
   );
+
+  const fetchOrganization = useCallback(
+    async (slug: string): Promise<void> => {
+      await fetchTenantBySlug(slug);
+    },
+    [fetchTenantBySlug]
+  );
+
+  const updateFeature = useCallback(
+    async (featureId: string, config: Partial<FeatureConfig>) => {
+      const targetOrgId = organization?._id || localStorage.getItem("organizationId");
+      if (!targetOrgId) {
+        toast.error("Organization context is not loaded yet");
+        return;
+      }
+      try {
+        await api.patch(`/organizations/${targetOrgId}/features`, {
+          featureId,
+          config,
+        });
+
+        setFeatureState((prev) => {
+          const current = prev[featureId] || FEATURE_REGISTRY.find((f) => f.id === featureId)?.defaultConfig || {
+            enabled: true,
+            settings: {},
+            access: { roles: ["admin"] },
+          };
+          return {
+            ...prev,
+            [featureId]: {
+              ...current,
+              ...config,
+              settings: {
+                ...current.settings,
+                ...(config.settings || {}),
+              },
+            },
+          };
+        });
+
+        toast.success("Feature updated successfully");
+      } catch (err: any) {
+        toast.error(err.message || "Failed to update feature");
+        throw err;
+      }
+    },
+    [organization]
+  );
+
+  const isFeatureEnabled = useCallback(
+    (featureId: string): boolean => {
+      const feature = FEATURE_REGISTRY.find((f) => f.id === featureId);
+      if (!feature) return true;
+      if (feature.isCore) return true;
+
+      const state = featureState[featureId];
+      if (!state) return feature.defaultConfig.enabled;
+
+      // Check dependencies
+      if (feature.dependencies.length > 0) {
+        const allDepsEnabled = feature.dependencies.every((depId) => {
+          const depFeature = FEATURE_REGISTRY.find((f) => f.id === depId);
+          if (!depFeature) return true;
+          if (depFeature.isCore) return true;
+          return featureState[depId]?.enabled ?? depFeature.defaultConfig.enabled;
+        });
+        if (!allDepsEnabled) return false;
+      }
+
+      return state.enabled;
+    },
+    [featureState]
+  );
+
+  const getFeatureConfig = useCallback(
+    (featureId: string): FeatureConfig | null => {
+      const feature = FEATURE_REGISTRY.find((f) => f.id === featureId);
+      if (!feature) return null;
+      return featureState[featureId] || feature.defaultConfig;
+    },
+    [featureState]
+  );
+
+  const getEnabledFeatures = useCallback(() => {
+    return FEATURE_REGISTRY.filter((f) => isFeatureEnabled(f.id)).map((f) => f.id);
+  }, [isFeatureEnabled]);
+
+  const refreshFeatures = useCallback(async () => {
+    if (!organization?.slug) return;
+    await fetchTenantBySlug(organization.slug);
+  }, [organization, fetchTenantBySlug]);
 
   const clearTenant = useCallback(() => {
     setOrganization(null);
+    setFeatureState({});
     setError(null);
     localStorage.removeItem("organizationId");
     document.documentElement.style.removeProperty("--tenant-primary");
@@ -154,25 +274,43 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
     document.title = "Campus Stay - Multi-Tenant Hostel Management Platform";
   }, []);
 
-  const validateUserAccess = useCallback(
-    (userOrgId?: string): boolean => {
-      if (!orgRef.current || !userOrgId) return false;
-      return orgRef.current._id.toString() === userOrgId.toString();
-    },
-    []
-  );
+  const validateUserAccess = useCallback((userOrgId?: string): boolean => {
+    if (!orgRef.current || !userOrgId) return false;
+    return orgRef.current._id.toString() === userOrgId.toString();
+  }, []);
 
   // Memoize Provider value to prevent un-necessary child re-renders
-  const value = useMemo(
+  const value = useMemo<TenantContextType>(
     () => ({
       organization,
+      featureState,
       loading,
       error,
       fetchTenantBySlug,
+      fetchOrganization,
+      updateFeature,
+      isFeatureEnabled,
+      getFeatureConfig,
+      getEnabledFeatures,
+      refreshFeatures,
       clearTenant,
       validateUserAccess,
     }),
-    [organization, loading, error, fetchTenantBySlug, clearTenant, validateUserAccess]
+    [
+      organization,
+      featureState,
+      loading,
+      error,
+      fetchTenantBySlug,
+      fetchOrganization,
+      updateFeature,
+      isFeatureEnabled,
+      getFeatureConfig,
+      getEnabledFeatures,
+      refreshFeatures,
+      clearTenant,
+      validateUserAccess,
+    ]
   );
 
   return <TenantContext.Provider value={value}>{children}</TenantContext.Provider>;
@@ -183,3 +321,6 @@ export function useTenant() {
   if (!ctx) throw new Error("useTenant must be used within TenantProvider");
   return ctx;
 }
+
+export const useOrganization = useTenant;
+

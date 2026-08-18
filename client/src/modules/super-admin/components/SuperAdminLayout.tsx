@@ -1,7 +1,7 @@
 import React, { memo } from "react";
 import { Outlet } from "react-router-dom";
-import Header from "@/components/layout/Header";
-import Sidebar from "@/components/layout/Sidebar";
+import Header from "@/core/components/layout/Header";
+import Sidebar from "@/core/components/layout/Sidebar";
 import { useAppDispatch, useAppSelector } from "@/utils/store";
 import { closeMenu } from "@/utils/appSlice";
 import { SuperAdminProvider } from "../context/super-admin-context";

@@ -29,8 +29,18 @@ const ROUTE_NAME_MAP: Record<string, { section: string; title: string }> = {
   bills: { section: "Finance & Governance", title: "Monthly Bills" },
   payments: { section: "Finance & Governance", title: "Fee Payments" },
   flags: { section: "Governance", title: "Discipline Flags" },
-  moderators: { section: "Administration", title: "Staff & Wardens" },
-  settings: { section: "Configuration", title: "Hostel Settings" },
+  moderators: { section: "Organization Settings", title: "Staff & Roles" },
+  settings: { section: "Organization Settings", title: "General" },
+  general: { section: "Organization Settings", title: "General" },
+  branding: { section: "Organization Settings", title: "Branding" },
+  features: { section: "Organization Settings", title: "Features & Modules" },
+  staff: { section: "Organization Settings", title: "Staff & Roles" },
+  notifications: { section: "Organization Settings", title: "Notifications" },
+  security: { section: "Organization Settings", title: "Security" },
+  edit: { section: "Organization Settings", title: "Edit Staff" },
+  account: { section: "Workspace Profile", title: "Account & Subscription" },
+  "hostel-setup": { section: "Residents & Housing", title: "Hostel Setup" },
+  "academic-setup": { section: "Residents & Housing", title: "Academic Setup" },
 };
 
 export function Breadcrumbs({ items: customItems, className }: BreadcrumbsProps) {

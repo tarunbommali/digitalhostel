@@ -47,6 +47,25 @@ router.get(
   })
 );
 
+// 1b. GET /api/moderators/:id (Get single staff member)
+router.get(
+  '/:id',
+  validateObjectId('id'),
+  asyncHandler(async (req, res) => {
+    const staffUser = await User.findOne({
+      _id: req.params.id,
+      organizationId: req.organizationId,
+      role: { $in: ['moderator', 'admin'] },
+    }).select('-password');
+
+    if (!staffUser) {
+      throw new NotFoundError('Staff member not found');
+    }
+
+    return sendSuccess(res, staffUser, 'Staff member details retrieved');
+  })
+);
+
 // 2. POST /api/moderators (Create moderator/staff)
 router.post(
   '/',

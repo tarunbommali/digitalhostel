@@ -104,7 +104,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                 className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-[var(--text-primary)] hover:bg-[var(--color-surface-muted)] cursor-pointer aria-selected:bg-[var(--color-surface-muted)]"
               >
                 <Settings className="h-4 w-4 text-[var(--text-muted)]" />
-                <span>Hostel Settings</span>
+                <span>Organization Settings</span>
               </Command.Item>
             </Command.Group>
 

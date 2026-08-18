@@ -12,6 +12,13 @@ import {
   Eye,
 } from "lucide-react";
 import { Badge } from "@/core/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/core/components/ui/dropdown-menu";
 import { Organization } from "../types/organization.types";
 import { toast } from "sonner";
 
@@ -22,10 +29,9 @@ interface OrganizationCardProps {
 
 export const OrganizationCard: React.FC<OrganizationCardProps> = ({ org, onPlanChange }) => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [showActions, setShowActions] = useState(false);
 
-  const plan = (org.plan || "PRO").toUpperCase();
-  const status = (org.subscriptionStatus || "Active").toLowerCase();
+  const plan = String(org.plan || "pro").toLowerCase();
+  const status = String(org.subscriptionStatus || "active").toLowerCase();
 
   const statusTextColor =
     status === "active"
@@ -76,11 +82,11 @@ export const OrganizationCard: React.FC<OrganizationCardProps> = ({ org, onPlanC
 
           {/* Action Menu & Tier Badge */}
           <div className="flex items-center gap-1.5 shrink-0">
-            {plan === "ENTERPRISE" ? (
+            {plan === "enterprise" ? (
               <Badge variant="enterprise" size="sm">
                 ENTERPRISE
               </Badge>
-            ) : plan === "PRO" ? (
+            ) : plan === "pro" ? (
               <Badge variant="pro" size="sm">
                 PRO
               </Badge>
@@ -91,45 +97,45 @@ export const OrganizationCard: React.FC<OrganizationCardProps> = ({ org, onPlanC
             )}
 
             {/* Quick Actions Dropdown */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setShowActions(!showActions)}
-                className="p-1 rounded-md hover:bg-[var(--color-surface-sunken)] transition-colors cursor-pointer text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                title="Options"
-              >
-                <MoreVertical className="w-4 h-4" />
-              </button>
-
-              {showActions && (
-                <div className="absolute right-0 mt-1 w-44 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg shadow-xl py-1 z-30 animate-in fade-in zoom-in-95">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className="p-1 rounded-md hover:bg-[var(--color-surface-sunken)] transition-colors cursor-pointer text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                  title="Options"
+                >
+                  <MoreVertical className="w-4 h-4" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-44">
+                <DropdownMenuItem asChild>
                   <Link
                     to={`/super-admin/organizations/${org._id}/edit`}
-                    className="flex items-center gap-2 px-3 py-2 text-xs text-[var(--text-primary)] hover:bg-[var(--color-surface-sunken)] transition-colors"
-                    onClick={() => setShowActions(false)}
+                    className="flex items-center gap-2 cursor-pointer"
                   >
-                    <Edit className="w-3.5 h-3.5 text-[var(--tenant-primary)]" /> Edit Organization
+                    <Edit className="w-3.5 h-3.5 text-[var(--tenant-primary)]" />
+                    <span>Edit Organization</span>
                   </Link>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowActions(false);
-                      onPlanChange(org);
-                    }}
-                    className="flex items-center gap-2 px-3 py-2 text-xs text-[var(--text-primary)] hover:bg-[var(--color-surface-sunken)] transition-colors w-full text-left cursor-pointer"
-                  >
-                    <Settings className="w-3.5 h-3.5 text-amber-500" /> Change Plan
-                  </button>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => onPlanChange(org)}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  <Settings className="w-3.5 h-3.5 text-amber-500" />
+                  <span>Change Plan</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
                   <Link
                     to={`/organization/${org.slug}/login`}
-                    className="flex items-center gap-2 px-3 py-2 text-xs text-[var(--text-primary)] hover:bg-[var(--color-surface-sunken)] transition-colors border-t border-[var(--color-border)] mt-1 pt-1.5"
-                    onClick={() => setShowActions(false)}
+                    className="flex items-center gap-2 cursor-pointer"
                   >
-                    <Eye className="w-3.5 h-3.5 text-[var(--text-muted)]" /> View Tenant Portal
+                    <Eye className="w-3.5 h-3.5 text-[var(--text-muted)]" />
+                    <span>View Tenant Portal</span>
                   </Link>
-                </div>
-              )}
-            </div>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
@@ -177,7 +183,7 @@ export const OrganizationCard: React.FC<OrganizationCardProps> = ({ org, onPlanC
                     : "bg-[var(--color-danger)]"
                 }`}
               />
-              {org.subscriptionStatus || "Active"}
+              {status}
             </span>
           </div>
 
@@ -212,7 +218,9 @@ export const OrganizationCard: React.FC<OrganizationCardProps> = ({ org, onPlanC
           <div className="flex justify-between items-center">
             <span className="text-[var(--text-muted)]">Total Users:</span>
             <span className="font-semibold text-[var(--text-primary)]">
-              {org.totalUsers || 1} Registered
+              {org.totalUsers !== undefined && org.totalUsers !== null
+                ? `${org.totalUsers} Registered`
+                : "—"}
             </span>
           </div>
         </div>

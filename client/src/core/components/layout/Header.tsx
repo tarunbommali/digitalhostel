@@ -4,10 +4,8 @@ import {
   Menu,
   Search,
   Bell,
-  Wifi,
-  WifiOff,
-  User,
   Shield,
+  User,
   LogOut,
   ChevronDown,
   Sun,
@@ -17,7 +15,6 @@ import {
 import { useAuth } from "@/core/context/auth-context";
 import { useTenant } from "@/core/context/tenant-context";
 import { useThemeMode } from "@/core/context/theme-context";
-import { useOnline } from "@/hooks/useOnline";
 import { useAppDispatch } from "@/utils/store";
 import { toggleMenu } from "@/utils/appSlice";
 import { CommandPalette } from "@/core/components/ui/command-palette";
@@ -45,7 +42,6 @@ export default function Header({ className }: HeaderProps = {}) {
   const { organization } = useTenant();
   const { resolvedTheme, toggleTheme } = useThemeMode();
   const isDark = resolvedTheme === "dark";
-  const isOnline = useOnline();
 
   const [commandPaletteOpen, setCommandPaletteOpen] = React.useState(false);
   const [notificationsOpen, setNotificationsOpen] = React.useState(false);
@@ -158,19 +154,6 @@ export default function Header({ className }: HeaderProps = {}) {
             )}
           </button>
 
-          {/* Network Status Badge (Non-public pages) */}
-          {!isPublicPage && (
-            <div
-              className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium border ${isOnline
-                ? "bg-[var(--color-success-bg)] text-[var(--color-success)] border-[var(--color-success-border)]"
-                : "bg-[var(--color-danger-bg)] text-[var(--color-danger)] border-[var(--color-danger-border)]"
-                }`}
-            >
-              {isOnline ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
-              <span>{isOnline ? "Online" : "Offline"}</span>
-            </div>
-          )}
-
           {/* Tenant Notification Center (ONLY for Tenant Workspace) */}
           {isTenantRoute && (
             <button
@@ -241,30 +224,38 @@ export default function Header({ className }: HeaderProps = {}) {
             /* Tenant User Profile Dropdown */
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2 pl-2 pr-1 py-1 rounded-md hover:bg-[var(--color-surface-muted)] transition-colors cursor-pointer">
+                <button className="flex items-center gap-2 pl-2 pr-1.5 py-1 rounded-md hover:bg-[var(--color-surface-muted)] transition-colors cursor-pointer">
                   <div className="h-7 w-7 rounded-md bg-[var(--tenant-primary)] text-white flex items-center justify-center font-bold text-xs shadow-xs">
-                    {user?.fullName?.charAt(0) || "U"}
+                    {(organization?.name || user?.fullName || "H").charAt(0).toUpperCase()}
                   </div>
-                  <span className="hidden md:inline text-xs font-semibold text-[var(--text-primary)] max-w-[110px] truncate">
-                    {user?.fullName || "Account"}
-                  </span>
+                  <div className="hidden md:flex flex-col text-left">
+                    <span className="text-xs font-semibold text-[var(--text-primary)] max-w-[120px] truncate leading-tight">
+                      {organization?.name || user?.firstName || "Hostel"}
+                    </span>
+                    <span className="text-[10px] text-[var(--text-muted)] leading-tight capitalize">
+                      {role === "admin" ? "Administrator" : role === "super_admin" ? "Super Admin" : role === "student" ? "Student" : (user as any)?.moderatorType ? (user as any).moderatorType.replace(/_/g, " ") : "Administrator"}
+                    </span>
+                  </div>
                   <ChevronDown className="h-3 w-3 text-[var(--text-muted)]" />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>
+                <DropdownMenuLabel
+                  onClick={() => navigate(slug ? `/organization/${slug}/account` : "/account")}
+                  className="cursor-pointer hover:bg-[var(--color-surface-sunken)] rounded-md p-2 transition-colors"
+                >
                   <p className="text-xs font-semibold text-[var(--text-primary)] truncate">
-                    {user?.fullName || "User"}
+                    {organization?.name || user?.fullName || "Hostel"}
                   </p>
                   <p className="text-[11px] text-[var(--text-muted)] truncate">{user?.email}</p>
                   <span className="mt-1 inline-block text-[10px] uppercase font-semibold text-[var(--tenant-primary)]">
-                    {role ? role.replace(/_/g, " ") : "Member"}
+                    {role === "admin" ? "Administrator" : role ? role.replace(/_/g, " ") : "Administrator"}
                   </span>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate(`/organization/${slug}/settings`)}>
-                  <User className="h-3.5 w-3.5 mr-2" />
-                  <span>Profile & Preferences</span>
+                <DropdownMenuItem onClick={() => navigate(slug ? `/organization/${slug}/account` : "/account")}>
+                  <User className="h-3.5 w-3.5 mr-2 text-[var(--tenant-primary)]" />
+                  <span>Account & Subscription</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="text-[var(--color-danger)] focus:text-[var(--color-danger)]">

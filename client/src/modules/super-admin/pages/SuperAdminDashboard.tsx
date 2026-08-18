@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Plus, Loader2, Building2, } from "lucide-react";
 import { Button } from "@/core/components/ui/button";
-import { Breadcrumbs } from "@/core/components/ui/Breadcrumbs";
+import { PageHeader } from "@/core/components/ui/PageHeader";
 
 import { useOrganizations } from "../hooks/useOrganizations";
 import { useOrganizationFilters } from "../hooks/useOrganizationFilters";
@@ -33,48 +33,29 @@ export default function SuperAdminDashboard() {
   }, []);
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
+    <div className="space-y-6 animate-in fade-in duration-150">
       {/* Page Header */}
-      <div className="space-y-3 pb-4 border-b border-[var(--color-border)]">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2.5">
-              <h1 className="font-display text-2xl font-bold text-[var(--text-primary)] tracking-tight">
-                Platform Organizations
-              </h1>
-              {!loading && (
-                <span className="px-2.5 py-0.5 text-xs font-semibold bg-[var(--tenant-primary)]/10 text-[var(--tenant-primary)] rounded-full border border-[var(--tenant-primary)]/20">
-                  {organizations.length} Total
-                </span>
-              )}
-            </div>
-            <p className="font-small text-xs text-[var(--text-secondary)] mt-1">
-              Global multi-tenant management, quota allocation, and tenant administrator credentials
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2.5">
-            <Button
-              asChild
-              variant="primary"
-              size="md"
-              className="gap-2 shadow-xs font-semibold shrink-0"
-            >
-              <Link to="/super-admin/organizations/new">
-                <Plus className="w-4 h-4" /> Create Organization Admin
-              </Link>
-            </Button>
-          </div>
-        </div>
-
-        {/* Page-Specific Breadcrumbs */}
-        <Breadcrumbs
-          items={[
-            { label: "Super Admin", to: "/super-admin", },
-            { label: "Organizations" },
-          ]}
-        />
-      </div>
+      <PageHeader
+        eyebrow="Platform Administration"
+        title="Platform Organizations"
+        description="Global multi-tenant management, quota allocation, and tenant administrator credentials"
+        breadcrumbs={[
+          { label: "Super Admin", to: "/super-admin" },
+          { label: "Organizations" },
+        ]}
+        actions={
+          <Button
+            asChild
+            variant="primary"
+            size="md"
+            className="gap-2 shadow-xs font-semibold shrink-0"
+          >
+            <Link to="/super-admin/organizations/new">
+              <Plus className="w-4 h-4" /> Create Organization Admin
+            </Link>
+          </Button>
+        }
+      />
 
       {/* Search, Filter & Sort Controls */}
       <FilterControls

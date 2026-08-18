@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { useSuperAdmin } from "../context/super-admin-context";
 import { OrganizationFormData } from "../types/organization.types";
 import OrganizationForm from "../components/OrganizationForm";
-import { Breadcrumbs } from "@/core/components/ui/Breadcrumbs";
+import { PageHeader } from "@/core/components/ui/PageHeader";
 
 export default function NewOrganization() {
   const navigate = useNavigate();
@@ -52,27 +52,18 @@ export default function NewOrganization() {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
+    <div className="space-y-6 animate-in fade-in duration-150">
       {/* Page Header */}
-      <div className="space-y-3 pb-4 border-b border-[var(--color-border)]">
-        <div>
-          <h1 className="font-display text-2xl font-bold text-[var(--text-primary)] tracking-tight">
-            Create Organization
-          </h1>
-          <p className="font-small text-xs text-[var(--text-secondary)] mt-1">
-            Provision a new tenant workspace, configure subscription tier, and create admin account credentials
-          </p>
-        </div>
-
-        {/* Page-Specific Breadcrumbs */}
-        <Breadcrumbs
-          items={[
-            { label: "Platform Console", to: "/super-admin", },
-            { label: "Organizations", to: "/super-admin/organizations" },
-            { label: "Create Organization" },
-          ]}
-        />
-      </div>
+      <PageHeader
+        eyebrow="Platform Administration"
+        title="Create Organization"
+        description="Provision a new tenant workspace, configure subscription tier, and create admin account credentials"
+        breadcrumbs={[
+          { label: "Platform Console", to: "/super-admin" },
+          { label: "Organizations", to: "/super-admin/organizations" },
+          { label: "Create Organization" },
+        ]}
+      />
 
       <OrganizationForm
         isEdit={false}

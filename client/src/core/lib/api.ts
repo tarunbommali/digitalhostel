@@ -96,41 +96,66 @@ export const http = {
 };
 
 // Backward-compatible api export for existing frontend hooks/components
+export interface ApiOptions {
+  noAuth?: boolean;
+  headers?: Record<string, string>;
+}
+
 export const api = {
-  get: async <T>(url: string, options?: { noAuth?: boolean }): Promise<T> => {
-    const res = await rawAxios.get<ApiResponse<T> | T>(url, options?.noAuth ? { headers: { Authorization: '' } } : undefined);
+  get: async <T>(url: string, options?: ApiOptions): Promise<T> => {
+    const headers = {
+      ...(options?.headers || {}),
+      ...(options?.noAuth ? { Authorization: '' } : {}),
+    };
+    const res = await rawAxios.get<ApiResponse<T> | T>(url, { headers });
     const data = res.data;
     if (data && typeof data === 'object' && 'data' in data && 'success' in data) {
       return (data as ApiResponse<T>).data;
     }
     return data as T;
   },
-  post: async <T>(url: string, body?: any, options?: { noAuth?: boolean }): Promise<T> => {
-    const res = await rawAxios.post<ApiResponse<T> | T>(url, body, options?.noAuth ? { headers: { Authorization: '' } } : undefined);
+  post: async <T>(url: string, body?: any, options?: ApiOptions): Promise<T> => {
+    const headers = {
+      ...(options?.headers || {}),
+      ...(options?.noAuth ? { Authorization: '' } : {}),
+    };
+    const res = await rawAxios.post<ApiResponse<T> | T>(url, body, { headers });
     const data = res.data;
     if (data && typeof data === 'object' && 'data' in data && 'success' in data) {
       return (data as ApiResponse<T>).data;
     }
     return data as T;
   },
-  put: async <T>(url: string, body?: any, options?: { noAuth?: boolean }): Promise<T> => {
-    const res = await rawAxios.put<ApiResponse<T> | T>(url, body, options?.noAuth ? { headers: { Authorization: '' } } : undefined);
+  put: async <T>(url: string, body?: any, options?: ApiOptions): Promise<T> => {
+    const headers = {
+      ...(options?.headers || {}),
+      ...(options?.noAuth ? { Authorization: '' } : {}),
+    };
+    const res = await rawAxios.put<ApiResponse<T> | T>(url, body, { headers });
     const data = res.data;
     if (data && typeof data === 'object' && 'data' in data && 'success' in data) {
       return (data as ApiResponse<T>).data;
     }
     return data as T;
   },
-  patch: async <T>(url: string, body?: any, options?: { noAuth?: boolean }): Promise<T> => {
-    const res = await rawAxios.patch<ApiResponse<T> | T>(url, body, options?.noAuth ? { headers: { Authorization: '' } } : undefined);
+  patch: async <T>(url: string, body?: any, options?: ApiOptions): Promise<T> => {
+    const headers = {
+      ...(options?.headers || {}),
+      ...(options?.noAuth ? { Authorization: '' } : {}),
+    };
+    const res = await rawAxios.patch<ApiResponse<T> | T>(url, body, { headers });
     const data = res.data;
     if (data && typeof data === 'object' && 'data' in data && 'success' in data) {
       return (data as ApiResponse<T>).data;
     }
     return data as T;
   },
-  delete: async <T>(url: string, options?: { noAuth?: boolean }): Promise<T> => {
-    const res = await rawAxios.delete<ApiResponse<T> | T>(url, options?.noAuth ? { headers: { Authorization: '' } } : undefined);
+  delete: async <T>(url: string, options?: ApiOptions): Promise<T> => {
+    const headers = {
+      ...(options?.headers || {}),
+      ...(options?.noAuth ? { Authorization: '' } : {}),
+    };
+    const res = await rawAxios.delete<ApiResponse<T> | T>(url, { headers });
     const data = res.data;
     if (data && typeof data === 'object' && 'data' in data && 'success' in data) {
       return (data as ApiResponse<T>).data;

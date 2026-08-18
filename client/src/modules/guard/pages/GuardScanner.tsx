@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { ShieldCheck } from "lucide-react";
-import { Breadcrumbs } from "@/core/components/ui/Breadcrumbs";
+import { PageHeader } from "@/core/components/ui/PageHeader";
 import { useTenant } from "@/core/context/tenant-context";
 import { GuardProvider } from "../context/guard-context";
 import { GuardScanVerification } from "../components/GuardScanVerification";
@@ -17,31 +16,17 @@ function GuardScannerContent() {
   }, [organization]);
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
+    <div className="space-y-6 animate-in fade-in duration-150">
       {/* Standard Page Header */}
-      <div className="space-y-3 pb-4 border-b border-[var(--color-border)]">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="font-display text-2xl font-bold text-[var(--text-primary)] tracking-tight">
-              Gate Scanner & Outing Logbook
-            </h1>
-            <span className="px-2.5 py-0.5 text-xs font-semibold bg-[var(--tenant-primary)]/10 text-[var(--tenant-primary)] rounded-full border border-[var(--tenant-primary)]/20">
-              {organization?.name || "Hostel Gate"}
-            </span>
-          </div>
-          <p className="font-small text-xs text-[var(--text-secondary)] mt-1">
-            Scan student Digital ID cards, check active leave passes, and log entry & exit movement at the hostel gate
-          </p>
-        </div>
-
-        {/* Page-Specific Breadcrumbs */}
-        <Breadcrumbs
-          items={[
-            { label: organization?.name || "Hostel", to: `${basePath}/dashboard` },
-            { label: "Gate Scanner" },
-          ]}
-        />
-      </div>
+      <PageHeader
+        eyebrow="Security & Access"
+        title="Gate Scanner & Outing Logbook"
+        description="Scan student Digital ID cards, check active leave passes, and log entry & exit movement at the hostel gate"
+        breadcrumbs={[
+          { label: organization?.name || "Hostel", to: `${basePath}/dashboard` },
+          { label: "Gate Scanner" },
+        ]}
+      />
 
       {/* Verification Scanner Section */}
       <GuardScanVerification />
