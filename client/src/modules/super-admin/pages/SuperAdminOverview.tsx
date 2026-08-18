@@ -18,7 +18,7 @@ import { Badge } from "@/core/components/ui/badge";
 import { PageHeader } from "@/core/components/ui/PageHeader";
 import { useOrganizations } from "../hooks/useOrganizations";
 import { KPICards } from "../components/KPICards";
-import { useOnline } from "@/hooks/useOnline";
+import { useOnline } from "@/core/hooks/useOnline";
 
 export default function SuperAdminOverview() {
   const { organizations, loading, kpis } = useOrganizations();

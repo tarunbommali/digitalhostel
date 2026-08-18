@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from "react";
 import { Student } from "../types/student.types";
-import { useDebounce } from "@/utils/useDebounce";
+import { useDebounce } from "@/core/hooks/useDebounce";
 
 export const useStudentFilters = (students: Student[]) => {
   const [searchTerm, setSearchTerm] = useState("");

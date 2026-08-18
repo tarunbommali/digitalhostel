@@ -62,8 +62,27 @@ rawAxios.interceptors.response.use(
       localStorage.removeItem('token');
       localStorage.removeItem('auth_token');
       localStorage.removeItem('auth_user');
-      if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
-        window.location.href = '/login?session_expired=true';
+      if (typeof window !== 'undefined') {
+        const currentPath = window.location.pathname;
+        const isAuthRoute =
+          currentPath === '/auth' ||
+          currentPath.includes('/login') ||
+          currentPath.includes('/signup') ||
+          currentPath.includes('/forgot-password') ||
+          currentPath.includes('/reset-password');
+
+        if (!isAuthRoute) {
+          if (currentPath.startsWith('/super-admin')) {
+            window.location.href = '/super-admin/login?session_expired=true';
+          } else {
+            const orgMatch = currentPath.match(/^\/organization\/([^\/]+)/);
+            if (orgMatch && orgMatch[1]) {
+              window.location.href = `/organization/${orgMatch[1]}/login?session_expired=true`;
+            } else {
+              window.location.href = '/auth?session_expired=true';
+            }
+          }
+        }
       }
     }
 

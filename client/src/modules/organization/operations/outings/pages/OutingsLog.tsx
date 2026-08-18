@@ -3,7 +3,7 @@ import { api } from "@/core/lib/api";
 import { useAuth } from "@/core/context/auth-context";
 import { useTenant } from "@/core/context/tenant-context";
 import { useParams } from "react-router-dom";
-import { useDebounce } from "@/utils/useDebounce";
+import { useDebounce } from "@/core/hooks/useDebounce";
 import { API_ENDPOINTS } from "@/utils/constants";
 import { Card } from "@/core/components/ui/card";
 import { Input } from "@/core/components/ui/input";
